@@ -8,9 +8,12 @@ information required to obtain the corresponding holoenzyme state.
 - Assign cofactor types to binding sites
 - Provide residue- and position-level placement information
 
+## Input
+- PDB or mmCIF file containing the hydrogenase apo-enzyme
+
 ## Output
 - Structured annotation data (JSON / tabular)
 - No structure generation or modification
+- Input for specific structure prediction models (e.g. yaml for boltz-2)
 
-## Intended use
-Downstream modeling, simulation, or structural analysis pipelines.
+

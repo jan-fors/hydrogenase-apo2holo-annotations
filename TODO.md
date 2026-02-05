@@ -1,0 +1,11 @@
+- [ ] database
+    - [ ] fingerprint db
+    - [ ] structure db -> cleaned structures
+- [ ] broad structure
+- [ ] blast search
+- [ ] struct align
+- [ ] identify positions
+- [ ] create fingerprints
+- [ ] group
+- [ ] select
+- [ ] return
