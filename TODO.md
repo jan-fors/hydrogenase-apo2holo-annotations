@@ -9,3 +9,4 @@
 - [ ] group
 - [ ] select
 - [ ] return
+- [ ] option to return top x different with scores
