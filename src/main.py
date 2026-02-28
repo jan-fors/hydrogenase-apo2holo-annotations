@@ -1,7 +1,5 @@
-from src.db.blast import blast
-from src.utils.structurally_align_to import structurally_align_to
 
-def main():
+def main(input_path : str, output : str, output_dir : str, database : str, boltz : bool):
     """
     1. Amino-acid sequence of structure is BLASTed against the sequence file of the database, which contains known hydrogenase structures and proteins that contain FeS-Cofactors. Return hits of database sorted by E values.
     2. Structurally align the hits with the input protein on the Ca-atoms of the residues that match in the BLAST alignment.
