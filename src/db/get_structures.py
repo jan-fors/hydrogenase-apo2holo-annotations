@@ -1,3 +1,0 @@
-"""
-returns structures from db
-"""

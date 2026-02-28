@@ -1,5 +1,22 @@
+import os
+from pathlib import Path
+from src.db.search_against_structuredb import search_against_structuredb
+from src.utils.get_chains import get_chains
+from src.utils.extract_chain import extract_chain
+from src.parser.parse_msearch_output import parse_msearch_output
+from src.filter.filter_msearch_output import filter_msearch_output
+from src.db.get_structure_path import get_structure_path
+from src.utils.extract_cofactors import extract_cofactors
+from src.utils.apply_transformations_to_cofactors import apply_transformations_to_cofactors
+import numpy as np
+from src.parser.parse_t import parse_t
+from src.parser.parse_u import parse_u
+from src.utils.calculate_geometric_centers import calculate_geometric_centers
 
-def main(input_path : str, output : str, output_dir : str, database : str, boltz : bool):
+from sklearn.cluster import KMeans
+from sklearn.cluster import DBSCAN
+
+def main(input_path : str, output : str, output_dir : str, tmp : str, boltz : bool):
     """
     1. Amino-acid sequence of structure is BLASTed against the sequence file of the database, which contains known hydrogenase structures and proteins that contain FeS-Cofactors. Return hits of database sorted by E values.
     2. Structurally align the hits with the input protein on the Ca-atoms of the residues that match in the BLAST alignment.
@@ -9,14 +26,71 @@ def main(input_path : str, output : str, output_dir : str, database : str, boltz
     6. select the most reasonable combination of cofactors based on the fingerprints.
     7. create output file and return
     """
+    # create outputfolder with name output
+    out = Path(os.path.join(output_dir, output))
+    os.makedirs(out, exist_ok=True)
+    
+    # extract chains
+    chains = get_chains(input_path)
+    chain_paths = []
+    for chain in chains:
+        chain_paths.append(extract_chain(input_path, out, chain))
+    
+    # run foldseek against structure db
+    fd_res = []
+    for cp in chain_paths:
+        fd_res.append(search_against_structuredb(cp, out, tmp))
 
-    #hits = blast() -> or some other multiple sequence alignment tool
+    cofactor_sites = []
+    names = []
 
-    #aligned_structures = structurally_align_to() -> IMPORTANT: IF general score is too bad dont use
+    # parse results for each chain
+    for fd_r in fd_res:
+        # parse output
+        r = parse_msearch_output(fd_r)
 
-    #identified_coordinates = identify_coords(aligned_structures)
+        # apply filters
+        subset = filter_msearch_output(r)
+
+        # extract coordinates for cofactors
+        for i in range(subset.shape[0]):
+            target = subset.iloc[i]["target"]
+            u = subset.iloc[i]["u"]
+            u_vec = parse_u(u)
+   
+            t = subset.iloc[i]["t"]
+            t_vec = parse_t(t)
+
+            # get structure path
+            structure_path = get_structure_path(target)
+            
+            # get cofactor coordinates
+            cofactors = extract_cofactors(structure_path)
+
+            # apply transformations
+            cofactors = apply_transformations_to_cofactors(cofactors, u_vec, t_vec)
+
+            # calculate mass center
+            geometric_centers = calculate_geometric_centers(cofactors)
+
+            # get coordinate valus
+            coords = list(geometric_centers.values())
+            names.extend(list(geometric_centers.keys()))
+            cofactor_sites.extend(coords)
 
     #group coordinates
+    # kmeans = KMeans(n_clusters=4, n_init="auto", random_state=0)
+    # labels = kmeans.fit_predict(cofactor_sites)
+
+    db = DBSCAN(eps=3.0, min_samples=5)
+    labels = db.fit_predict(cofactor_sites)
+
+    for i in range(len(labels)):
+        print(names[i], labels[i])
+
+
+
+    
 
     # go from active site moving away
     # check surrounding and find matching cofactor

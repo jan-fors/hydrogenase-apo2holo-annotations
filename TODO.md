@@ -1,9 +1,8 @@
 - [ ] database
     - [ ] fingerprint db
-    - [ ] structure db -> cleaned structures
-- [ ] broad structure
-- [ ] blast search
-- [ ] struct align
+    - [X] structure db -> cleaned structures
+- [X] broad structure
+- [ ] foldseek impl
 - [ ] identify positions
 - [ ] create fingerprints
 - [ ] group

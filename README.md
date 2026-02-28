@@ -30,4 +30,4 @@ python -m src.db.build_structure_db <DIR WITH PDB STRUCTURES> <DIR FOR CLEANED S
 - Rodrigues JPGLM, Teixeira JMC, Trellet M and Bonvin AMJJ.
 pdb-tools: a swiss army knife for molecular structures. 
 F1000Research 2018, 7:1961 (https://doi.org/10.12688/f1000research.17456.1) 
-- 
+- https://github.com/steineggerlab/foldseek?tab=readme-ov-file#search
