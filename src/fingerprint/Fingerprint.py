@@ -1,3 +1,0 @@
-"""
-Fingerprint obj
-"""

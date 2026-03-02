@@ -12,9 +12,37 @@ import numpy as np
 from src.parser.parse_t import parse_t
 from src.parser.parse_u import parse_u
 from src.utils.calculate_geometric_centers import calculate_geometric_centers
+from src.io.plot import plot_with_protein_from_pdb
+from src.filter.apply_blacklist import apply_blacklist
 
 from sklearn.cluster import KMeans
 from sklearn.cluster import DBSCAN
+from sklearn.neighbors import NearestNeighbors
+from sklearn.neighbors import NearestNeighbors
+from scipy.sparse.csgraph import connected_components
+
+
+from sklearn.mixture import GaussianMixture
+
+def nn_radius_clustering(points, radius):
+    """
+    points: numpy array (N,3)
+    radius: distance threshold
+
+    Returns:
+        labels: numpy array (N,)
+    """
+
+    # Build radius neighbor graph
+    nbrs = NearestNeighbors(radius=radius)
+    nbrs.fit(points)
+
+    adjacency_matrix = nbrs.radius_neighbors_graph(points)
+
+    # Find connected components
+    n_components, labels = connected_components(adjacency_matrix)
+
+    return labels
 
 def main(input_path : str, output : str, output_dir : str, tmp : str, boltz : bool):
     """
@@ -67,6 +95,8 @@ def main(input_path : str, output : str, output_dir : str, tmp : str, boltz : bo
             # get cofactor coordinates
             cofactors = extract_cofactors(structure_path)
 
+            cofactors = apply_blacklist(cofactors)
+
             # apply transformations
             cofactors = apply_transformations_to_cofactors(cofactors, u_vec, t_vec)
 
@@ -82,15 +112,26 @@ def main(input_path : str, output : str, output_dir : str, tmp : str, boltz : bo
     # kmeans = KMeans(n_clusters=4, n_init="auto", random_state=0)
     # labels = kmeans.fit_predict(cofactor_sites)
 
-    db = DBSCAN(eps=3.0, min_samples=5)
-    labels = db.fit_predict(cofactor_sites)
+    # gmm = GaussianMixture(n_components=4, covariance_type="full")
+    # labels = gmm.fit_predict(cofactor_sites)
+
+    # db = DBSCAN(eps=3.0, min_samples=5)
+    # labels = db.fit_predict(cofactor_sites)
+
+    labels = nn_radius_clustering(cofactor_sites, radius=5.0)
 
     for i in range(len(labels)):
-        print(names[i], labels[i])
+        print(names[i], labels[i], cofactor_sites[i])
 
+    # fig = plot_with_protein_from_pdb(
+    # pdb_path=input_path,
+    # cofactor_coords=cofactor_sites,
+    # labels=labels,
+    # names=names,
+    # out_html="protein_plot.html"
+    # )
 
-
-    
+        
 
     # go from active site moving away
     # check surrounding and find matching cofactor

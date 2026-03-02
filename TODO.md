@@ -2,10 +2,10 @@
     - [ ] fingerprint db
     - [X] structure db -> cleaned structures
 - [X] broad structure
-- [ ] foldseek impl
-- [ ] identify positions
+- [X] foldseek impl
+- [X] identify positions
 - [ ] create fingerprints
-- [ ] group
+- [X] group
 - [ ] select
 - [ ] return
 - [ ] option to return top x different with scores
