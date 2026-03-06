@@ -1,11 +1,11 @@
 import os
 from pathlib import Path
-from src.db.search_against_structuredb import search_against_structuredb
+from src.database.search_against_structuredb import search_against_structuredb
 from src.utils.get_chains import get_chains
 from src.utils.extract_chain import extract_chain
 from src.parser.parse_msearch_output import parse_msearch_output
 from src.filter.filter_msearch_output import filter_msearch_output
-from src.db.get_structure_path import get_structure_path
+from src.database.get_structure_path import get_structure_path
 from src.utils.extract_cofactors import extract_cofactors
 from src.utils.apply_transformations_to_cofactors import apply_transformations_to_cofactors
 import numpy as np
@@ -14,6 +14,9 @@ from src.parser.parse_u import parse_u
 from src.utils.calculate_geometric_centers import calculate_geometric_centers
 from src.io.plot import plot_with_protein_from_pdb
 from src.filter.apply_blacklist import apply_blacklist
+from src.filter.apply_whitelist import apply_whitelist
+from src.fingerprint.create_fingerprint import create_fingerprint
+from src.database.search_against_fingerprint_db import search_against_fingerprint_db
 
 from sklearn.cluster import KMeans
 from sklearn.cluster import DBSCAN
@@ -21,7 +24,7 @@ from sklearn.neighbors import NearestNeighbors
 from sklearn.neighbors import NearestNeighbors
 from scipy.sparse.csgraph import connected_components
 
-
+from collections import Counter
 from sklearn.mixture import GaussianMixture
 
 def nn_radius_clustering(points, radius):
@@ -91,11 +94,14 @@ def main(input_path : str, output : str, output_dir : str, tmp : str, boltz : bo
 
             # get structure path
             structure_path = get_structure_path(target)
-            
+            if structure_path == None:
+                continue
+
             # get cofactor coordinates
             cofactors = extract_cofactors(structure_path)
 
             cofactors = apply_blacklist(cofactors)
+            cofactors = apply_whitelist(cofactors)
 
             # apply transformations
             cofactors = apply_transformations_to_cofactors(cofactors, u_vec, t_vec)
@@ -108,33 +114,41 @@ def main(input_path : str, output : str, output_dir : str, tmp : str, boltz : bo
             names.extend(list(geometric_centers.keys()))
             cofactor_sites.extend(coords)
 
-    #group coordinates
-    # kmeans = KMeans(n_clusters=4, n_init="auto", random_state=0)
-    # labels = kmeans.fit_predict(cofactor_sites)
+    labels = nn_radius_clustering(cofactor_sites, radius=4.0)
 
-    # gmm = GaussianMixture(n_components=4, covariance_type="full")
-    # labels = gmm.fit_predict(cofactor_sites)
-
-    # db = DBSCAN(eps=3.0, min_samples=5)
-    # labels = db.fit_predict(cofactor_sites)
-
-    labels = nn_radius_clustering(cofactor_sites, radius=5.0)
+    # rearrange data
+    cluster = {}
 
     for i in range(len(labels)):
-        print(names[i], labels[i], cofactor_sites[i])
+        if labels[i] not in cluster.keys():
+            cluster[labels[i]] = []
+        cluster[labels[i]].append(cofactor_sites[i])
+        # print(names[i], labels[i], cofactor_sites[i])
 
-    # fig = plot_with_protein_from_pdb(
-    # pdb_path=input_path,
-    # cofactor_coords=cofactor_sites,
-    # labels=labels,
-    # names=names,
-    # out_html="protein_plot.html"
-    # )
 
-        
+    fig = plot_with_protein_from_pdb(
+    pdb_path=input_path,
+    cofactor_coords=cofactor_sites,
+    labels=labels,
+    names=names,
+    out_html="protein_plot.html"
+    )
+    results = {}
 
-    # go from active site moving away
-    # check surrounding and find matching cofactor
+    # for each label
+    for cl in cluster.keys():
+        results[cl] = Counter()
 
-    # return output file
-    pass
+        # for each cofactor
+        for point in cluster[cl]:
+            # create fingerprint
+            F = create_fingerprint(input_path, point)
+
+            # check fingerprintdb
+            hits = search_against_fingerprint_db(F)
+
+            # count occurrences
+            results[cl].update(hits)
+
+    # return output
+    print(results)

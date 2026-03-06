@@ -17,17 +17,3 @@ Follow the procedure described in AlphaFill Paper with slight differences.
 7. create output file and return
 
 
-```python
-from Bio.PDB import PDBParser, NeighborSearch
-
-parser = PDBParser()
-structure = parser.get_structure("prot", "protein.pdb")
-
-atoms = list(structure.get_atoms())
-ns = NeighborSearch(atoms)
-
-center = (55.3, 47.0, 84.6)
-near_atoms = ns.search(center, 3.0)  # 3 Å
-
-residues = {a.get_parent() for a in near_atoms}
-```

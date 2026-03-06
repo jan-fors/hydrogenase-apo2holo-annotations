@@ -1,6 +1,7 @@
 example/
-dat/
+
 db/
+dat/single_chains/*
 tmp/
 out/
 *.html
