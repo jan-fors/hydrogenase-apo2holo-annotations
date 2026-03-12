@@ -11,14 +11,14 @@ def calculate_geometric_centers(cofactors : dict[str, list[tuple[str, float, flo
             atoms = cofactors[key][subkey]
         P = np.array([[a[1], a[2], a[3]] for a in atoms], dtype=float)
         if subkey == None:
-            res[key] = _calculate_center(P)
+            res[key] = calculate_center(P)
         else:
             res[key] = cofactors[key]
-            res[key]["geometric_center"] = _calculate_center(P)
+            res[key]["geometric_center"] = calculate_center(P)
 
     return res
 
-def _calculate_center(M : np.ndarray) -> tuple[float,float,float]:
+def calculate_center(M : np.ndarray) -> tuple[float,float,float]:
     """
     """
     if M.ndim != 2 or M.shape[1] != 3:

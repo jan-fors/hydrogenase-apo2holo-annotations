@@ -3,12 +3,12 @@ from src.utils.constants import (
 )
 import pandas as pd
 
-def search_against_fingerprint_db(F : dict):
+def search_against_fingerprint_db(F : dict, fingerprint_db_path : str = FINGERPRINT_DB):
     """
     TODO load fingerprintDB once
     ALA	ARG	ASN	ASP	CYS	GLN	GLU	GLY	HIS	ILE	LEU	LYS	MET	PHE	PRO	SER	THR	TRP	TYR	VAL
     """
-    DB = pd.read_csv(FINGERPRINT_DB, sep="\t")
+    DB = pd.read_csv(fingerprint_db_path, sep="\t")
     
    
     subset = DB[DB["ALA"] == F["ALA"]]

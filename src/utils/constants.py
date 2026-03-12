@@ -14,7 +14,7 @@ STRUCTURE_DB="db/structureDB"
 FOLDSEEK_OUT_FORMAT="query,target,fident,alnlen,mismatch,gapopen,qstart,qend,tstart,tend,evalue,bits,u,t"
 
 FIDENT_THRESHOLD=0.1
-BITS_THRESHOLD=500
+BITS_THRESHOLD=1000
 
 FINGERPRINT_RADIUS = 5
 FINGERPRINT_DB="db/fingerprintDB/fingerprint_db.tsv"

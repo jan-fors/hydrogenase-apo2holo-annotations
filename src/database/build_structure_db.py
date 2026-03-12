@@ -16,6 +16,7 @@ from pathlib import Path
 from src.utils.constants import COFACTOR_BLACKLIST, STRUCTURE_DB
 from src.utils.get_chains import get_chains
 from src.utils.extract_chain import extract_chain
+from Bio import PDB
 
 
 def _check_input_dir(input_dir: str):
@@ -29,7 +30,7 @@ def _check_output_dir(output_dir: str):
         os.makedirs(output_dir, exist_ok=True)
 
 
-def build_structure_db(input_dir: str, output_dir: str):
+def build_structure_db(input_dir: str, output_dir: str, structure_db_path : str = STRUCTURE_DB):
     """ """
     _check_input_dir(input_dir)
     _check_output_dir(output_dir)
@@ -48,8 +49,23 @@ def build_structure_db(input_dir: str, output_dir: str):
         for chain in chains:
             result_structure = extract_chain(file_path, output_dir, chain)
             _apply_blacklist(result_structure)
+            _use_first_model(result_structure)
 
-    _create_foldseek_db(output_dir)
+    _create_foldseek_db(output_dir, structure_db_path)
+
+def _use_first_model(structure_path: Path):
+    """ """
+    parser = PDB.PDBParser(QUIET=True)
+    structure = parser.get_structure("protein", structure_path)
+
+    # Nur das erste Modell auswählen (Index 0)
+    first_model = structure[0]
+
+    # Speichern
+    io = PDB.PDBIO()
+    io.set_structure(first_model)
+    io.save(str(structure_path))
+    
 
 def _apply_blacklist(structure_path: str):
     """ """
@@ -74,14 +90,14 @@ def _apply_blacklist(structure_path: str):
     printl(f"[remove_blacklisted_hetatm_inplace] removed_hetatm_lines={removed}")
 
 
-def _create_foldseek_db(structure_dir_path: str):
+def _create_foldseek_db(structure_dir_path: str, structure_db_path : str = STRUCTURE_DB):
     """"""
     # create db
-    cmd = ["foldseek", "createdb", str(structure_dir_path), STRUCTURE_DB]
+    cmd = ["foldseek", "createdb", str(structure_dir_path), structure_db_path]
     subprocess.run(cmd, stderr=subprocess.PIPE, text=True, check=True)
 
     # create index
-    cmd = ["foldseek", "createindex", STRUCTURE_DB, "tmp"]
+    cmd = ["foldseek", "createindex", structure_db_path, "tmp"]
     subprocess.run(cmd, stderr=subprocess.PIPE, text=True, check=True)
 
 

@@ -11,21 +11,24 @@ from src.utils.apply_transformations_to_cofactors import apply_transformations_t
 import numpy as np
 from src.parser.parse_t import parse_t
 from src.parser.parse_u import parse_u
-from src.utils.calculate_geometric_centers import calculate_geometric_centers
+from src.utils.calculate_geometric_centers import calculate_geometric_centers, calculate_center
 from src.io.plot import plot_with_protein_from_pdb
 from src.filter.apply_blacklist import apply_blacklist
 from src.filter.apply_whitelist import apply_whitelist
 from src.fingerprint.create_fingerprint import create_fingerprint
 from src.database.search_against_fingerprint_db import search_against_fingerprint_db
 
-from sklearn.cluster import KMeans
-from sklearn.cluster import DBSCAN
 from sklearn.neighbors import NearestNeighbors
 from sklearn.neighbors import NearestNeighbors
 from scipy.sparse.csgraph import connected_components
+from tqdm import tqdm
+from src.utils.identfy_cysteines import identify_cysteines
 
 from collections import Counter
-from sklearn.mixture import GaussianMixture
+from src.utils.constants import (
+    STRUCTURE_DB,
+    FINGERPRINT_DB
+)
 
 def nn_radius_clustering(points, radius):
     """
@@ -47,7 +50,7 @@ def nn_radius_clustering(points, radius):
 
     return labels
 
-def main(input_path : str, output : str, output_dir : str, tmp : str, boltz : bool):
+def main(input_path : str, output : str, output_dir : str, tmp : str, boltz : bool, structure_db_path : str = STRUCTURE_DB, fingerprint_db_path : str = FINGERPRINT_DB):
     """
     1. Amino-acid sequence of structure is BLASTed against the sequence file of the database, which contains known hydrogenase structures and proteins that contain FeS-Cofactors. Return hits of database sorted by E values.
     2. Structurally align the hits with the input protein on the Ca-atoms of the residues that match in the BLAST alignment.
@@ -70,7 +73,7 @@ def main(input_path : str, output : str, output_dir : str, tmp : str, boltz : bo
     # run foldseek against structure db
     fd_res = []
     for cp in chain_paths:
-        fd_res.append(search_against_structuredb(cp, out, tmp))
+        fd_res.append(search_against_structuredb(cp, out, tmp, structure_db_path))
 
     cofactor_sites = []
     names = []
@@ -119,20 +122,20 @@ def main(input_path : str, output : str, output_dir : str, tmp : str, boltz : bo
     # rearrange data
     cluster = {}
 
-    for i in range(len(labels)):
+    for i in tqdm(range(len(labels))):
         if labels[i] not in cluster.keys():
             cluster[labels[i]] = []
         cluster[labels[i]].append(cofactor_sites[i])
         # print(names[i], labels[i], cofactor_sites[i])
 
 
-    fig = plot_with_protein_from_pdb(
-    pdb_path=input_path,
-    cofactor_coords=cofactor_sites,
-    labels=labels,
-    names=names,
-    out_html="protein_plot.html"
-    )
+    # fig = plot_with_protein_from_pdb(
+    # pdb_path=input_path,
+    # cofactor_coords=cofactor_sites,
+    # labels=labels,
+    # names=names,
+    # out_html="protein_plot.html"
+    # )
     results = {}
 
     # for each label
@@ -140,15 +143,51 @@ def main(input_path : str, output : str, output_dir : str, tmp : str, boltz : bo
         results[cl] = Counter()
 
         # for each cofactor
-        for point in cluster[cl]:
+        for point in tqdm(cluster[cl]):
             # create fingerprint
             F = create_fingerprint(input_path, point)
 
             # check fingerprintdb
-            hits = search_against_fingerprint_db(F)
+            hits = search_against_fingerprint_db(F, fingerprint_db_path)
 
             # count occurrences
             results[cl].update(hits)
 
+    
+    """
+    The selection mechanic might change using a different database/search engine.
+    For test reasons:
+    - for every cluster that has hits
+    - choose type that has most hits
+        - FeS or Active Site
+            - if active site cluster -> active site smiles
+            - if FeS wins -> type smiles
+    """
+    # select
+    for cl in results.keys():
+        tmp = dict(results[cl])
+        if not tmp:
+            print(f"{cl} is an empty cluster. Removing it..")
+            continue
+
+        lst = sorted(tmp.items(), key=lambda x: x[1])
+        
+        is_active_site = False
+
+        if lst[0][0] in ["NFV", "NI", "NFU", "3NI", "FCO", "CMO"]: # active site
+            is_active_site = True
+     
+        # calculate cluster mass centers for clusters with  
+        M = np.array(cluster[cl])
+        #print(M, M.shape)
+
+        center = calculate_center(M)
+
+        # identfy cysteins which are important for binding
+        cysteines = identify_cysteines(input_path, center)
+
+        print(f"Cluster: {cl}, is active stie: {is_active_site}, name: {lst[0][0]}, cysteines: {cysteines}")
     # return output
-    print(results)
+
+    # create yaml
+    #print(results)

@@ -1,7 +1,17 @@
 example/
+*.yaml
+*.gitignore
+*.ipynb
+*.csv
+*.tsv
 
 db/
 dat/single_chains/*
+dat/dimer_dataset/*
+dat/benchmarking_subsets/*
+dat/dedup_dimer/*
+
+
 tmp/
 out/
 *.html

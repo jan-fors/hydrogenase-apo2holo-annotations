@@ -1,6 +1,6 @@
 # hydrogenase-apo2holo-annotations
 
-This repository provides tools to annotate apo hydrogenase structures with
+This repository provides a tool to annotate apo **nife** hydrogenase structures with
 information required to obtain the corresponding holoenzyme state.
 
 ## Scope
