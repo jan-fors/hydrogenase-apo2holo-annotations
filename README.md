@@ -20,18 +20,12 @@ information required to obtain the corresponding holoenzyme state.
 ## Run
 ### apo2holo
 ```sh
-python -m src.cli <INPUT STRUCTURE> <OUTPUT_FOLDER_NAME> -o <OUTPUT_DIR>
+python -m src.cli <INPUT STRUCTURE> <RUN_NAME> -o <OUTPUT_DIR>
 ```
-### Build structure DB
+### Build 
 ```sh
-python -m src.db.build_structure_db <DIR WITH PDB STRUCTURES> <DIR FOR CLEANED STRUCTURE CHAINS> #TODO change to dir for database
+python -m src.build <RAW_STRUCTURE_DIR> <OUTPUT_DIR FOR CHAINS> --structure-db-path <PATH> --fingerprint-db-path <PATH>
 ```
-- creates structureDB
-### Build fingerprint DB
-```sh
-python -m src.db.build_fingerprint_db <DIR WITH PDB STRUCTURES> <DIR FOR FINGERPRINTDB>
-```
-
 
 
 # References

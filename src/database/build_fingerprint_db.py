@@ -91,8 +91,6 @@ def build_fingerprint_db(input_structure_dir : Path, output_dir : Path, sample :
         if sample and counter >= 5:
             break
 
-    print("Deduplicating database ...")
-    print(f"Database size before deduplication: {db_df.shape[0]}")
     # create row that combines all aminoacid rows into one string for deduplication
     #db_df["amino_acids"] = db_df[["ALA", "ARG", "ASN", "ASP", "CYS", "GLN", "GLU", "GLY", "HIS", "ILE", "LEU", "LYS", "MET", "PHE", "PRO", "SER", "THR", "TRP", "TYR", "VAL"]].apply(lambda row: "".join([f"{col}:{row[col]}" for col in ["ALA", "ARG", "ASN", "ASP", "CYS", "GLN", "GLU", "GLY", "HIS", "ILE", "LEU", "LYS", "MET", "PHE", "PRO", "SER", "THR", "TRP", "TYR", "VAL"]]), axis=1)
     # deduplicate database by all columns except id and res_name and smiles_tmp

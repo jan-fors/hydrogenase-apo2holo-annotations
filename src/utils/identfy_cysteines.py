@@ -1,7 +1,7 @@
 from Bio.PDB import PDBParser, MMCIFParser, NeighborSearch, Selection
 import numpy as np
 
-def identify_cysteines(structure_path : str, coords : list, radius : float = 6.0):
+def identify_cysteines(structure_path : str, coords : list, radius : float = 5.0):
         """
     Identify all cysteine residues within a given radius of one or more coordinates.
 

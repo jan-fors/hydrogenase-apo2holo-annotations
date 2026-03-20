@@ -12,7 +12,7 @@
 - [ ] split models in build db
 - [X] Create FingerprintDB class
     - [ ] fill
-- [ ] return
+- [X] return
 - [ ] option to return top x different with scores
 
 - [ ] load fingerprintDB once and use not every time search against is called

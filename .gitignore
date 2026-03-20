@@ -10,6 +10,9 @@ dat/single_chains/*
 dat/dimer_dataset/*
 dat/benchmarking_subsets/*
 dat/dedup_dimer/*
+dat/input_structure_test/*
+dat/output_structure_test/*
+db_test/
 
 
 tmp/
