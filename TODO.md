@@ -9,13 +9,21 @@
 - [ ] select
     - [X] Logistic Regression for each cluster? -> maybe later first just with similarity
     - [ ] https://dev.to/prajak002/building-a-vector-database-from-scratch-in-python-5eg
-- [ ] split models in build db
+- [X] split models in build db
 - [X] Create FingerprintDB class
-    - [ ] fill
+    - [X] fill
 - [X] return
 - [ ] option to return top x different with scores
-
-- [ ] load fingerprintDB once and use not every time search against is called
+- [X] load fingerprintDB once and use not every time search against is called
+- [X] Benchmarking überarbeiten
+- [ ] add mirrowed proteins to raw data or dedup set with the hope to increase hits
 
 Issues:
 - [X] some files have a different name inside of the structureDB therefore they are skipped -> make everyone used
+- [ ] look at wrong results of clustering
+- [ ] too many with non conform fes cluster amount
+    - [ ] bad pre filtering?
+    - [ ] correct subunits in teststructures? -> seems so
+    - [ ] active site identification is bad
+    - [ ] increase fingerprint radius for distal cluster?
+    - [ ] one proba search per mass center for each cluster spot?

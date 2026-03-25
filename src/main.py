@@ -256,6 +256,14 @@ def main(input_path : str, output : str, output_dir : str, tmp : str, boltz : bo
                 )
 
     # try to map into known system
+    is_conform = False
+
+    # calculate distanz of each fes cluster to active site
+    for i in range(len(fes_cluster)):
+        fes_cluster[i]["dist"] = point_distance(active_site["x"], active_site["y"], active_site["z"], fes_cluster[i]["x"], fes_cluster[i]["y"], fes_cluster[i]["z"])
+
+    # sort by length
+    sorted_data = sorted(fes_cluster, key=lambda d: d["dist"])
 
     # validate/interpret output
     if len(fes_cluster) > 3:
@@ -263,72 +271,89 @@ def main(input_path : str, output : str, output_dir : str, tmp : str, boltz : bo
         medial = None
         distal = None
         printl("Identified more than three fes cluster. Cannot choose proximal, medial and distal.")
-        exit(0)
     elif len(fes_cluster) < 3:
         proximal = None
         medial = None
         distal = None
         printl("Identified less than 3 fes clusters. Cannot choose proximal, medial and distal.")
-        exit(0)
     else:
-        # calculate distanz of each fes cluster to active site
-        for i in range(len(fes_cluster)):
-            fes_cluster[i]["dist"] = point_distance(active_site["x"], active_site["y"], active_site["z"], fes_cluster[i]["x"], fes_cluster[i]["y"], fes_cluster[i]["z"])
-
-        # sort by length
-        sorted_data = sorted(fes_cluster, key=lambda d: d["dist"])
-
+        is_conform = True
+        
         proximal = sorted_data[0]
         medial = sorted_data[1]
         distal = sorted_data[2]
 
     # define result
 
+    if is_conform:
+        result = {
+            "active_site": {
+                "smiles": ":)",
+                "formula": active_site["formula"],
+                "coords":  {
+                    "x": active_site["x"],
+                    "y": active_site["y"],
+                    "z": active_site["z"]
+                    },
+                "cystein-connections": active_site["cysteines"]
+            },
+            "proximal": {
+                "smiles": ":)",
+                "formula": proximal["formula"],
+                "coords":  {
+                    "x": proximal["x"],
+                    "y": proximal["y"],
+                    "z": proximal["z"]
+                    },
+                "cystein-connections": proximal["cysteines"]
+            },
+            "medial": {
+                "smiles": ":)",
 
-    result = {
-        "active_site": {
-            "smiles": ":)",
-            "coords":  {
-                "x": active_site["x"],
-                "y": active_site["y"],
-                "z": active_site["z"]
-                },
-            "cystein-connections": active_site["cysteines"]
-        },
-        "proximal": {
-            "smiles": ":)",
-            "formula": proximal["formula"],
-            "coords":  {
-                "x": proximal["x"],
-                "y": proximal["y"],
-                "z": proximal["z"]
-                },
-            "cystein-connections": proximal["cysteines"]
-        },
-        "medial": {
-            "smiles": ":)",
-
-            "formula": medial["formula"],
-            "coords":  {
-                "x": medial["x"],
-                "y": medial["y"],
-                "z": medial["z"]
-                },
-            "cystein-connections": medial["cysteines"]
-        },
-        "distal": {
-            "smiles": ":)",
+                "formula": medial["formula"],
+                "coords":  {
+                    "x": medial["x"],
+                    "y": medial["y"],
+                    "z": medial["z"]
+                    },
+                "cystein-connections": medial["cysteines"]
+            },
+            "distal": {
+                "smiles": ":)",
 
 
-            "formula": distal["formula"],
-            "coords":  {
-                "x": distal["x"],
-                "y": distal["y"],
-                "z": distal["z"]
-                },
-            "cystein-connections": distal["cysteines"]
+                "formula": distal["formula"],
+                "coords":  {
+                    "x": distal["x"],
+                    "y": distal["y"],
+                    "z": distal["z"]
+                    },
+                "cystein-connections": distal["cysteines"]
+            }
         }
-    }
+    else:
+        result = {
+            "active_site": {
+                "smiles": ":)",
+                "formula": active_site["formula"],
+                "coords":  {
+                    "x": active_site["x"],
+                    "y": active_site["y"],
+                    "z": active_site["z"]
+                    },
+                "cystein-connections": active_site["cysteines"]
+            }}
+        for i in range(len(fes_cluster)):
+            result[i] = {
+                "smiles": ":)",
+                "formula": fes_cluster[i]["formula"],
+                "coords":  {
+                    "x": fes_cluster[i]["x"],
+                    "y": fes_cluster[i]["y"],
+                    "z": fes_cluster[i]["z"]
+                    },
+                "cystein-connections": fes_cluster[i]["cysteines"]
+            }
 
     # write json output file
     json_path = os.path.join(out, "result.json")

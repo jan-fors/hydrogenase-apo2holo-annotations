@@ -14,6 +14,10 @@ dat/input_structure_test/*
 dat/output_structure_test/*
 db_test/
 
+benchmarking/
+dat/benchmarking_subsets/
+dat/2026-03-dedup_dimer/*
+
 
 tmp/
 out/
