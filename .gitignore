@@ -16,7 +16,7 @@ db_test/
 
 benchmarking/
 dat/benchmarking_subsets/
-dat/2026-03-dedup_dimer/*
+dat/2026-03-dedup_dimers/*
 
 
 tmp/
