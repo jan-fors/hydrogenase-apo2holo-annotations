@@ -16,7 +16,8 @@
 - [ ] option to return top x different with scores
 - [X] load fingerprintDB once and use not every time search against is called
 - [X] Benchmarking überarbeiten
-- [ ] add mirrowed proteins to raw data or dedup set with the hope to increase hits
+(- [ ] add mirrowed proteins to raw data or dedup set with the hope to increase hits)
+- [ ] https://www.geeksforgeeks.org/machine-learning/auc-roc-curve/
 
 Issues:
 - [X] some files have a different name inside of the structureDB therefore they are skipped -> make everyone used
