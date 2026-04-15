@@ -22,6 +22,8 @@ In order to use the program create a conda env with:
 conda env create -f environment.yml
 ```
 ### apo2holo
+Before running the script for the first time check `src/utils/constants.py`. 
+In order for the program to run correctly, the paths to the databases have to be set correctly.
 ```sh
 python -m src.cli <INPUT STRUCTURE> <RUN_NAME> -o <OUTPUT_DIR>
 ```
@@ -29,7 +31,8 @@ python -m src.cli <INPUT STRUCTURE> <RUN_NAME> -o <OUTPUT_DIR>
 ```sh
 python -m src.build <RAW_STRUCTURE_DIR> <OUTPUT_DIR FOR CHAINS> --structure-db-path <PATH> --fingerprint-db-path <PATH>
 ```
-
+- `OUTPUT_DIR FOR CHAINS`: Each structure is split into its chains and the chains are copied into this folder,
+- `--structure-db-path`: Path for the final structure database. Database is created inside a new folder inside of this specified path 
 
 # References
 - Rodrigues JPGLM, Teixeira JMC, Trellet M and Bonvin AMJJ.
