@@ -39,7 +39,7 @@ def build(input_structure_dir : Path, output_structure_dir : Path, structure_db_
     """
     """
     # build structure db
-    build_structure_db(input_structure_dir, output_structure_dir, structure_db_path)
+    #build_structure_db(input_structure_dir, output_structure_dir, structure_db_path)
 
     # build fingerprint db
     build_fingerprint_db(input_structure_dir, fingerprint_db_path)

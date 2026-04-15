@@ -105,7 +105,7 @@ if CREATE_DATABASES:
         os.makedirs(structure_db, exist_ok=True)
         structure_db = os.path.join(structure_db, "structureDB")
         
-        fingerprint_db = os.path.join(db_dir, "fingerprintDB")
+        fingerprint_db = os.path.join(db_dir, "fingerprintDB_6")
         os.makedirs(fingerprint_db, exist_ok=True)
 
         build(input_structure_dir, output_structure_dir, structure_db, fingerprint_db)
@@ -118,9 +118,9 @@ if PREDICT:
 
     for set in os.listdir(BENCHMARKING_DIR):
         structure_db_path = os.path.join(BENCHMARKING_DIR, set, "db", "structureDB", "structureDB")
-        fingerprint_db = os.path.join(BENCHMARKING_DIR, set, "db", "fingerprintDB")
+        fingerprint_db = os.path.join(BENCHMARKING_DIR, set, "db", "fingerprintDB_6")
 
-        output_dir = os.path.join(BENCHMARKING_DIR, set, "absolut")
+        output_dir = os.path.join(BENCHMARKING_DIR, set, "logreg_6")
         os.makedirs(output_dir, exist_ok=True)
 
         test_set = os.path.join(BENCHMARKING_DIR, set, "test")

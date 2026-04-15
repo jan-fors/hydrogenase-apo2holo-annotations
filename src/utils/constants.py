@@ -19,7 +19,7 @@ FOLDSEEK_OUT_FORMAT="query,target,fident,alnlen,mismatch,gapopen,qstart,qend,tst
 FIDENT_THRESHOLD=0.1
 BITS_THRESHOLD=500
 
-FINGERPRINT_RADIUS = 5 # is too small
+FINGERPRINT_RADIUS = 5
 FINGERPRINT_DB="db/fingerprintDB"
 MODEL=""
 

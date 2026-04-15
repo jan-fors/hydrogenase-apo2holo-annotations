@@ -185,7 +185,6 @@ def main(input_path : str, output : str, output_dir : str, tmp : str, boltz : bo
             # count occurrences
             results[cl].update(hits)
 
-    print(results)
     """
     The selection mechanic might change using a different database/search engine.
     For test reasons:
@@ -206,8 +205,49 @@ def main(input_path : str, output : str, output_dir : str, tmp : str, boltz : bo
         "cysteines": None
     }
 
+    # identify active site
+    key_active_site = None
+    amount_active_site = 0
+    for cl in results.keys():
+        tmp = dict(results[cl])
+        if not tmp:
+            continue
+
+        lst = sorted(tmp.items(), key=lambda x: x[1], reverse=True)
+
+        first = lst[0][0]
+        try:
+            second = lst[1][0]
+        except:
+            second = ""
+
+        if "active_site" in first or "active_site" in second:
+            if key_active_site == None:
+                key_active_site = cl
+                amount_active_site = tmp["active_site"]
+            else:
+                if amount_active_site < tmp["active_site"]:
+                    key_active_site = cl
+                    amount_active_site = tmp["active_site"]
+
+    # assign active site
+    active_site["formula"] = "active_site"
+    # calculate cluster mass centers for clusters with  
+    M = np.array(cluster[key_active_site])
+
+    center = calculate_center(M)
+    active_site["x"] = center[0]
+    active_site["y"] = center[1]
+    active_site["z"] = center[2]
+    # identfy cysteins which are important for binding
+    cysteines = identify_cysteines(input_path, center)
+    active_site["cysteines"] = cysteines
+
+    # go through other cluster
     fes_cluster = []
     for cl in results.keys():
+        if cl == key_active_site:
+            continue
         tmp = dict(results[cl])
         if not tmp:
             print(f"{cl} is an empty cluster. Removing it..")
@@ -216,17 +256,10 @@ def main(input_path : str, output : str, output_dir : str, tmp : str, boltz : bo
         lst = sorted(tmp.items(), key=lambda x: x[1], reverse=True) #TODO muss true sein?
         formula = lst[0][0]
 
-        try:
-            formula_sec = lst[1][0] #TODO just quickfix
-        except:
-            formula_sec = ""
+        if formula == "active_site":
+            formula = lst[1][0]
 
-        is_active_site = False
-
-        if "active_site" in formula or "active_site" in formula_sec:# in ["NFV", "NI", "NFU", "3NI", "FCO", "CMO"]: # active site
-            is_active_site = True
-            formula = "active_site"
-     
+  
         # calculate cluster mass centers for clusters with  
         M = np.array(cluster[cl])
 
@@ -235,25 +268,19 @@ def main(input_path : str, output : str, output_dir : str, tmp : str, boltz : bo
         # identfy cysteins which are important for binding
         cysteines = identify_cysteines(input_path, center)
 
-        printl(f"Cluster: {cl}, is active stie: {is_active_site}, formula: {formula}, cysteines: {cysteines}")
+        printl(f"Cluster: {cl}, formula: {formula}, cysteines: {cysteines}")
 
-        if is_active_site:
-            active_site["formula"] = formula
-            active_site["x"] = center[0]
-            active_site["y"] = center[1]
-            active_site["z"] = center[2]
-            active_site["cysteines"] = cysteines
-        else:
-            if formula != "protein":
-                fes_cluster.append(
-                    {
-                        "formula": formula,
-                        "x": center[0],
-                        "y": center[1],
-                        "z": center[2],
-                        "cysteines": cysteines
-                    }
-                )
+     
+        if formula != "protein":
+            fes_cluster.append(
+                {
+                    "formula": formula,
+                    "x": center[0],
+                    "y": center[1],
+                    "z": center[2],
+                    "cysteines": cysteines
+                }
+            )
 
     # try to map into known system
     is_conform = False

@@ -1,3 +1,5 @@
+# TODOs
+## General
 - [X] database
     - [X] fingerprint db
     - [X] structure db -> cleaned structures
@@ -17,14 +19,18 @@
 - [X] load fingerprintDB once and use not every time search against is called
 - [X] Benchmarking überarbeiten
 (- [ ] add mirrowed proteins to raw data or dedup set with the hope to increase hits)
-- [ ] https://www.geeksforgeeks.org/machine-learning/auc-roc-curve/
+- [ ] finalize output
 
-Issues:
+## Benchmarking
+- [ ] https://www.geeksforgeeks.org/machine-learning/auc-roc-curve/
+- [ ] colabfold structures as input for benchmarking? Loss ap02holo(colabfold prediction) against experimental prediction
+
+## Issues:
 - [X] some files have a different name inside of the structureDB therefore they are skipped -> make everyone used
-- [ ] look at wrong results of clustering
+- [X] look at wrong results of clustering
 - [ ] too many with non conform fes cluster amount
     - [ ] bad pre filtering?
-    - [ ] correct subunits in teststructures? -> seems so
+    - [X] correct subunits in teststructures? -> seems so
     - [ ] active site identification is bad
     - [ ] increase fingerprint radius for distal cluster?
-    - [ ] one proba search per mass center for each cluster spot?
+    - [ ] **one proba search per mass center for each cluster spot?**
