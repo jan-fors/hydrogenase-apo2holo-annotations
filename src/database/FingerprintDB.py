@@ -24,6 +24,8 @@ from Bio.PDB.PDBExceptions import PDBConstructionWarning
 
 from src.models.logistic_regression_model import LogisticRegressionModel
 from src.models.absolut_search import AbsolutSearchEngine
+from src.models.svm import SupportVectorMachine
+from src.models.mlp_classifier import CustomMLPClassifier
 
 import warnings
 warnings.simplefilter("ignore", PDBConstructionWarning)
@@ -61,17 +63,13 @@ class FingerprintDB:
         if os.path.exists(self.logistic_regression_model_path):
             self.logistic_regression_model = LogisticRegressionModel().load(self.logistic_regression_model_path)
 
-        # # mlp classifier model
-        # if os.path.exists(self.mlp_classifier_model_path):
-        #     printl(f"Loading model from {self.mlp_classifier_model_path}")
-        #     with open(self.mlp_classifier_model_path, "rb") as f:
-        #         self.mlp_classifier_model = pickle.load(f)
+        # mlp classifier model
+        if os.path.exists(self.mlp_classifier_model_path):
+            self.mlp_classifier_model = CustomMLPClassifier().load(self.mlp_classifier_model_path)
 
-        # # svm model
-        # if os.path.exists(self.svm_model_path):
-        #     printl(f"Loading model from {self.svm_model_path}")
-        #     with open(self.svm_model_path, "rb") as f:
-        #         self.svm_model = pickle.load(f)
+        # svm model
+        if os.path.exists(self.svm_model_path):
+            self.svm_model = SupportVectorMachine().load(self.svm_model_path)
 
         # # nn model
         # if os.path.exists(self.nn_model_path):
@@ -107,13 +105,12 @@ class FingerprintDB:
         # logreg model
         self.logistic_regression_model.save(self.logistic_regression_model_path)
         
-            # # svm
-            # with open(self.mlp_classifier_model_path, "wb") as f:
-            #     pickle.dump(self.mlp_classifier_modell, f)
+        # svm model
+        self.svm_model.save(self.svm_model_path)
 
-            # # mlp
-            # with open(self.svm_model_path, "wb") as f:
-            #     pickle.dump(self.svm_model, f)
+        # mlp
+        self.mlp_classifier_model.save(self.mlp_classifier_model_path)
+            
 
             # # nn
             # with open(self.nn_model_path, "wb") as f:
@@ -128,10 +125,10 @@ class FingerprintDB:
             return self.logistic_regression_model.predict(F)
         elif search_type == "absolut":
             return self.absolut_search_engine.predict(F)
-        # elif search_type == "svm":
-        #     return self._svm_predict(F)
-        # elif search_type == "mlp":
-        #     return self._mlp_predict(F)
+        elif search_type == "svm":
+            return self.svm_model.predict(F)
+        elif search_type == "mlp":
+            return self.mlp_classifier_model.predict(F)
         # elif search_type == "nn":
         #     return self._nn_predict(F)
         else:
@@ -153,6 +150,14 @@ class FingerprintDB:
         # train_log_reg
         self.logistic_regression_model = LogisticRegressionModel()
         self.logistic_regression_model.train(X_np, Y)
+
+        # train svm
+        self.svm_model = SupportVectorMachine()
+        self.svm_model.train(X_np, Y)
+
+        # train mlp classifier
+        self.mlp_classifier_model = CustomMLPClassifier()
+        self.mlp_classifier_model.train(X_np, Y)
 
 
     def _load_databasefile(self, db_path : Path):

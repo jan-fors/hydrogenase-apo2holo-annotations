@@ -190,7 +190,6 @@ def main(input_path : str, output : str, output_dir : str, tmp : str, boltz : bo
             hits = fingerprintDB.search(fingerprints, SEARCH_TYPE)
             # count occurrences
             results[cl].update(hits)
-        
 
         elif SEARCH_TYPE == "logreg_mc":
             # calculate mass center of cluster
@@ -216,6 +215,59 @@ def main(input_path : str, output : str, output_dir : str, tmp : str, boltz : bo
 
             # count occurrences
             results[cl] = aggregate_probs(hits)
+
+        elif SEARCH_TYPE == "svm_sum":
+            results[cl] = Counter()
+
+            # for each cofactor create fingerprints
+            fingerprints = []
+            for point in tqdm(cluster[cl], disable=not VERBOSE):
+                # create fingerprint
+                F = create_fingerprint(input_path, point)
+                fingerprints.append(F)
+
+            # check fingerprintdb
+            hits = fingerprintDB.search(fingerprints, "svm")
+
+            # count occurrences
+            results[cl] = aggregate_probs(hits)
+
+        elif SEARCH_TYPE == "svm_mc":
+            # calculate mass center of cluster
+            M = np.array(cluster[cl])
+            center = calculate_center(M)
+            F = [create_fingerprint(input_path, center)]
+            hits = fingerprintDB.search(F, "svm")
+
+            results[cl] = Counter(hits[0])
+
+        elif SEARCH_TYPE == "mlp_sum":
+            results[cl] = Counter()
+
+            # for each cofactor create fingerprints
+            fingerprints = []
+            for point in tqdm(cluster[cl], disable=not VERBOSE):
+                # create fingerprint
+                F = create_fingerprint(input_path, point)
+                fingerprints.append(F)
+
+            # check fingerprintdb
+            hits = fingerprintDB.search(fingerprints, "mlp")
+
+            # count occurrences
+            results[cl] = aggregate_probs(hits)
+
+        elif SEARCH_TYPE == "mlp_mc":
+            # calculate mass center of cluster
+            M = np.array(cluster[cl])
+            center = calculate_center(M)
+            F = [create_fingerprint(input_path, center)]
+            hits = fingerprintDB.search(F, "mlp")
+
+            results[cl] = Counter(hits[0])
+
+    print(results)
+    exit(0)
 
     """
     The selection mechanic might change using a different database/search engine.

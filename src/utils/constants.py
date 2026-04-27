@@ -31,15 +31,24 @@ MODEL=""
 
 TMP="tmp"
 
-SEARCH_TYPE = "logreg_sum"   #"absolut","logreg_sum", "svm_sum", "svm_mc", "logreg_mc", "nn_mc", "nn_sum"
+SEARCH_TYPE = "svm_sum"   #"absolut","logreg_sum", "svm_sum", "svm_mc", "logreg_mc", "nn_mc", "nn_sum"
 
 # logreg params
-MAX_ITER = 400
+MAX_ITER = 1000
 SOLVER = 'lbfgs'
 CLASS_WEIGHT = "balanced"
 
 # svm params
+SVC_MAX_ITER=1000
+SVC_KERNEL="rbf"
+SVC_DEGREE=3
+SVC_GAMMA="scale"
+SVC_SHRINKING=True
+SVC_TOLERANCE=0.002
+SVC_C=1.0
 
 # mlpclassifier params
-
-# nn params
+MLP_SOLVER = "adam"
+MLP_ALPHA = 1e-5
+MLP_MAX_ITER = 5000
+MLP_HIDDEN_LAYERS = (20,20,10,5)

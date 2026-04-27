@@ -1,22 +1,19 @@
-from sklearn.svm import SVC
-from sklearn import svm
+from sklearn.neural_network import MLPClassifier
 import os
 import numpy as np
 from src.utils.constants import (
-    SVC_MAX_ITER,
-    SVC_KERNEL,
-    SVC_DEGREE,
-    SVC_GAMMA,
-    SVC_SHRINKING,
-    SVC_TOLERANCE,
-    SVC_C
+    MLP_SOLVER,
+    MLP_ALPHA,
+    MLP_MAX_ITER,
+    MLP_HIDDEN_LAYERS
 )
+
 from pathlib import Path
 import pickle
 
 from src.io.printl import printl
 
-class SupportVectorMachine:
+class CustomMLPClassifier:
     def __init__(self):
         pass
 
@@ -51,16 +48,8 @@ class SupportVectorMachine:
     def train(self, X, Y):
         """
         """
-        self.model = svm.SVC(
-            probability=True,
-            C=SVC_C,
-            degree=SVC_DEGREE,
-            max_iter=SVC_MAX_ITER,
-            gamma=SVC_GAMMA,
-            kernel=SVC_KERNEL,
-            tol=SVC_TOLERANCE,
-            shrinking=SVC_SHRINKING
-        )
+        self.model = MLPClassifier(solver=MLP_SOLVER, alpha=MLP_ALPHA,
+                    hidden_layer_sizes=MLP_HIDDEN_LAYERS, random_state=1, max_iter=MLP_MAX_ITER)
         self.model.fit(X, Y)
     
     def get_model(self):
