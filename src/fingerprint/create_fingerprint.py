@@ -12,8 +12,9 @@ from src.utils.constants import (
     FINGERPRINT_RADIUS
 )
 from Bio.PDB import PDBParser, NeighborSearch
+import numpy as np
 
-def create_fingerprint(structure_path : Path, point : tuple):
+def create_fingerprint(structure_path : Path, point : tuple) -> np.array:
     """"""
     parser = PDBParser()
     structure = parser.get_structure("prot", structure_path)
@@ -53,4 +54,4 @@ def create_fingerprint(structure_path : Path, point : tuple):
             F[r.get_resname()] += 1
         except:
             continue
-    return F
+    return np.array(list(F.values()))

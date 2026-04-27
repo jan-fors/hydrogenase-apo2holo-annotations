@@ -11,6 +11,12 @@ COFACTOR_WHITELIST = [
     "CMO", "SF3", "NFV", "F3S", "NWN", "NI", "3NI", "F4S", "SF4", "NFR", "FE2", "NFU", "NFO", "FNE", "FCO", "FSX", "CYN"
 ]
 
+AA_ORDER = [
+    "ALA","ARG","ASN","ASP","CYS","GLN","GLU","GLY",
+    "HIS","ILE","LEU","LYS","MET","PHE","PRO",
+    "SER","THR","TRP","TYR","VAL"
+]
+
 STRUCTURE_DIR="dat/single_chains"#"dat/single_chains"#2026-03-06-raw_structures"
 
 STRUCTURE_DB="db/structureDB/structureDB"
@@ -25,6 +31,15 @@ MODEL=""
 
 TMP="tmp"
 
+SEARCH_TYPE = "logreg_sum"   #"absolut","logreg_sum", "svm_sum", "svm_mc", "logreg_mc", "nn_mc", "nn_sum"
+
+# logreg params
 MAX_ITER = 400
 SOLVER = 'lbfgs'
-SEARCH_TYPE = "logreg_sum"   #"absolut","logreg_sum", "svm_sum", "svm_mc", "logreg_mc", "nn_mc", "nn_sum"
+CLASS_WEIGHT = "balanced"
+
+# svm params
+
+# mlpclassifier params
+
+# nn params

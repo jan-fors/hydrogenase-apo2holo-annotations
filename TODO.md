@@ -26,6 +26,7 @@
 
 ## Extra
 - [ ] option to return top x different with scores
+- [ ] no reason to load all models at once - except ensemble prediction?
 
 ## Benchmarking
 - [ ] colabfold structures as input for benchmarking? Loss ap02holo(colabfold prediction) against experimental prediction

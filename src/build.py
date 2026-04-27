@@ -55,13 +55,11 @@ def build_structure_db(raw_input_dir : Path, chain_dir : Path, structure_db_path
 def build_fingerprint_db(raw_input_dir : Path, fingerprint_db_path : Path):
     """
     """
-    fingerprintDB = FingerprintDB()
+    fingerprintDB = FingerprintDB(fingerprint_db_path)
 
     fingerprintDB.build_db(raw_input_dir)
 
-    db_path = os.path.join(fingerprint_db_path, "fingerprint.tsv")
-    model_path = os.path.join(fingerprint_db_path, "model.pkl")
-    fingerprintDB.save(db_path, model_path)
+    fingerprintDB.save()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
