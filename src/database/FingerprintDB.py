@@ -8,7 +8,8 @@ from src.utils.constants import (
     FINGERPRINT_DB,
     MODEL,
     MAX_ITER,
-    SOLVER
+    SOLVER,
+    AA_ORDER
 )
 from sklearn.linear_model import LogisticRegression
 from collections import Counter
@@ -20,10 +21,14 @@ from src.fingerprint.create_fingerprint import create_fingerprint
 import uuid
 from Bio.PDB import PDBParser
 from Bio.PDB.PDBExceptions import PDBConstructionWarning
+
+from src.models.logistic_regression_model import LogisticRegressionModel
+from src.models.absolut_search import AbsolutSearchEngine
+from src.models.svm import SupportVectorMachine
+from src.models.mlp_classifier import CustomMLPClassifier
+
 import warnings
 warnings.simplefilter("ignore", PDBConstructionWarning)
-import warnings
-
 warnings.filterwarnings(
     "ignore",
     message="X does not have valid feature names"
@@ -34,20 +39,48 @@ class FingerprintDB:
         """
         """
         
-        self.db_path = os.path.join(str(db_directory), "fingerprint.tsv")
-        self.model_path = os.path.join(str(db_directory), "model.pkl")
+        self.db_path = Path(os.path.join(str(db_directory), "fingerprint.tsv"))
 
+        # models
+        self.logistic_regression_model_path = os.path.join(str(db_directory), "logistic_regression_model.pkl")
+        self.mlp_classifier_model_path = os.path.join(str(db_directory), "mlp_classifier_model.pkl")
+        self.svm_model_path = os.path.join(str(db_directory), "svm_model.pkl")
+        self.nn_model_path = os.path.join(str(db_directory), "nn_model.pkl")
+
+        # load db
         if os.path.exists(self.db_path):
             printl(f"Loading fingerprint database from {self.db_path} ...")
             self.db = self._load_databasefile(self.db_path)
 
-        if os.path.exists(self.model_path):
-            printl(f"Loading model from {self.model_path}")
-            with open(self.model_path, "rb") as f:
-                self.model = pickle.load(f)     
-    
+        # load models TODO no reason to load all models at once
+
+        # load absolut search engine
+        if os.path.exists(self.db_path):
+            self.absolut_search_engine = AbsolutSearchEngine().load_file(self.db_path)
+
+        
+        # logistic regr model
+        if os.path.exists(self.logistic_regression_model_path):
+            self.logistic_regression_model = LogisticRegressionModel().load(self.logistic_regression_model_path)
+
+        # mlp classifier model
+        if os.path.exists(self.mlp_classifier_model_path):
+            self.mlp_classifier_model = CustomMLPClassifier().load(self.mlp_classifier_model_path)
+
+        # svm model
+        if os.path.exists(self.svm_model_path):
+            self.svm_model = SupportVectorMachine().load(self.svm_model_path)
+
+        # # nn model
+        # if os.path.exists(self.nn_model_path):
+        #     printl(f"Loading model from {self.nn_model_path}")
+        #     with open(self.nn_model_path, "rb") as f:
+        #         self.nn_model = pickle.load(f)
+
+
     def load(self, db_path : Path = FINGERPRINT_DB, model_path : Path = MODEL):
         """
+        TODO unused till here
         """
         if db_path != None:
             self.db_path = db_path
@@ -62,91 +95,70 @@ class FingerprintDB:
                 with open(self.model_path, "rb") as f:
                     self.model = pickle.load(f)   
 
-    def save(self, db_path : Path = FINGERPRINT_DB, model_path : Path = MODEL):
+    def save(self):
         """
         """
-        if db_path != None:
-            self.db.to_csv(db_path, sep="\t", index=None)
+        # save db
+        self.db.to_csv(self.db_path, sep="\t", index=None)
 
-        if model_path != None:
-            with open(model_path, "wb") as f:
-                pickle.dump(self.model, f)
-    
-    def search(self, F : dict, search_type : Literal["logreg", "absolut"]) -> list:
+        # save models
+        # logreg model
+        self.logistic_regression_model.save(self.logistic_regression_model_path)
+        
+        # svm model
+        self.svm_model.save(self.svm_model_path)
+
+        # mlp
+        self.mlp_classifier_model.save(self.mlp_classifier_model_path)
+            
+
+            # # nn
+            # with open(self.nn_model_path, "wb") as f:
+            #     pickle.dump(self.nn_model, f)
+
+    def search(self, F : dict, search_type : Literal["logreg", "absolut", "svm", "mlp", "nn"]) -> list:
         """
+        Return: 
+            TODO return the same type
         """
         if search_type == "logreg":
-            return self._predict(F)
+            return self.logistic_regression_model.predict(F)
         elif search_type == "absolut":
-            return self._absolut_search(F)
+            return self.absolut_search_engine.predict(F)
+        elif search_type == "svm":
+            return self.svm_model.predict(F)
+        elif search_type == "mlp":
+            return self.mlp_classifier_model.predict(F)
+        # elif search_type == "nn":
+        #     return self._nn_predict(F)
         else:
             printl("Use valid earch option. [logreg, absolut]")
             return []
-
-    def get_model(self):
-        return self.model
 
     def build_db(self, input_directory : Path):
         """
         """
         # build db table
         self.db = self._build_db_table(input_directory)
+        self.absolut_search_engine = AbsolutSearchEngine().load_dataframe(self.db_path)
+
+        X = self.db.drop(columns=['formula', 'id', 'smiles', 'res_name'])
+        X_np = X.to_numpy()
+
+        Y = self.db["formula"]
 
         # train_log_reg
-        self.model = self._train_log_reg(self.db)
+        self.logistic_regression_model = LogisticRegressionModel()
+        self.logistic_regression_model.train(X_np, Y)
 
-    def _train_log_reg(self, database : pd.DataFrame):
-        """
-        
-        """
-        # database = database[~database['formula'].str.contains('NI', na=False)]
-        # database = database[~database['formula'].str.contains('N', na=False)]
-        # database = database[~database['formula'].str.contains('O', na=False)]
+        # train svm
+        self.svm_model = SupportVectorMachine()
+        self.svm_model.train(X_np, Y)
 
-        X = database.drop(columns=['formula', 'id', 'smiles', 'res_name'])
-        y = database["formula"]
+        # train mlp classifier
+        self.mlp_classifier_model = CustomMLPClassifier()
+        self.mlp_classifier_model.train(X_np, Y)
 
-        model = LogisticRegression(solver=SOLVER, max_iter=MAX_ITER, class_weight="balanced")
-        model.fit(X, y)
-
-        return model
-
-    def _predict(self, F : dict) -> list:
-        """
-        """
-        #X = [list(F.values())]
-        X = [[F[name] for name in self.model.feature_names_in_]]
-        proba = self.model.predict_proba(X)
-        # proba_max = float(proba[0].max())
-        # if proba_max < 0.6:
-        #     return None
-        return [proba]
-
-    def _absolut_search(self, F : dict) -> list:
-        """
-        """
-        subset = self.db[self.db["ALA"] == F["ALA"]]
-        subset = subset[subset["ARG"] == F["ARG"]]
-        subset = subset[subset["ASN"] == F["ASN"]]
-        subset = subset[subset["ASP"] == F["ASP"]]
-        subset = subset[subset["CYS"] == F["CYS"]]
-        subset = subset[subset["GLN"] == F["GLN"]]
-        subset = subset[subset["GLU"] == F["GLU"]]
-        subset = subset[subset["GLY"] == F["GLY"]]
-        subset = subset[subset["HIS"] == F["HIS"]]
-        subset = subset[subset["ILE"] == F["ILE"]]
-        subset = subset[subset["LEU"] == F["LEU"]]
-        subset = subset[subset["LYS"] == F["LYS"]]
-        subset = subset[subset["MET"] == F["MET"]]
-        subset = subset[subset["PHE"] == F["PHE"]]
-        subset = subset[subset["PRO"] == F["PRO"]]
-        subset = subset[subset["SER"] == F["SER"]]
-        subset = subset[subset["THR"] == F["THR"]]
-        subset = subset[subset["TRP"] == F["TRP"]]
-        subset = subset[subset["TYR"] == F["TYR"]]
-        subset = subset[subset["VAL"] == F["VAL"]]
-
-        return subset["formula"].to_list()
 
     def _load_databasefile(self, db_path : Path):
         """
@@ -248,6 +260,10 @@ class FingerprintDB:
                 # create fingerprint
                 F = create_fingerprint(structure_path, cofactors[c]["geometric_center"])
                 
+                F_dict = {i: F[AA_ORDER.index(i)] for i in AA_ORDER}
+
+                
+
                 # create formula
                 atoms = Counter(atom[0].upper() for atom in cofactors[c]["atoms"]
                     if atom[0].upper() in {"FE", "S"})
@@ -258,30 +274,30 @@ class FingerprintDB:
                     formula  = "active_site"
                 else:                
                     formula = self._counter_to_formula(atoms)
-               
-                F["formula"] = formula
+
+                F_dict["formula"] = formula
                 
                 try:
-                    F["smiles"] = [SMILES[formula]] #TODO change to smiles
+                    F_dict["smiles"] = [SMILES[formula]] #TODO change to smiles
                 except:
-                    F["smiles"] = "UwU"
+                    F_dict["smiles"] = "UwU"
 
-                F["id"] = [c]
-                F["res_name"] = [cofactors[c]["res_name"]]
+                F_dict["id"] = [c]
+                F_dict["res_name"] = [cofactors[c]["res_name"]]
 
-                db_df = pd.concat([db_df, pd.DataFrame(F)], ignore_index=True)
+                db_df = pd.concat([db_df, pd.DataFrame(F_dict)], ignore_index=True)
 
             # test none class
             for c in blacklisted:
                 # create Fingerprint
                 F = create_fingerprint(structure_path, blacklisted[c]["geometric_center"])
+                F_dict = {i: F[AA_ORDER.index(i)] for i in AA_ORDER}
+                F_dict["formula"] = "protein"
+                F_dict["smiles"] = "OwO"
+                F_dict["id"] = [c]
+                F_dict["res_name"] = [blacklisted[c]["res_name"]]
 
-                F["formula"] = "protein"
-                F["smiles"] = "OwO"
-                F["id"] = [c]
-                F["res_name"] = [blacklisted[c]["res_name"]]
-
-                db_df = pd.concat([db_df, pd.DataFrame(F)], ignore_index=True)
+                db_df = pd.concat([db_df, pd.DataFrame(F_dict)], ignore_index=True)
 
 
             printl(f"Structrue {structure} complete ...")

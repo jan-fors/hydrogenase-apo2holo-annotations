@@ -16,7 +16,6 @@ from src.io.plot import plot_with_protein_from_pdb
 from src.filter.apply_blacklist import apply_blacklist
 from src.filter.apply_whitelist import apply_whitelist
 from src.fingerprint.create_fingerprint import create_fingerprint
-from src.database.search_against_fingerprint_db import search_against_fingerprint_db
 from src.io.printl import printl
 from src.io.result_table import write_to_result_table
 import json
@@ -37,6 +36,7 @@ from pprint import pprint
 from src.database.StructureDB import StructureDB
 from src.database.FingerprintDB import FingerprintDB
 from src.utils.smiles import SMILES
+from collections import defaultdict
 
 def nn_radius_clustering(points, radius): #TODO move to own file
     """
@@ -58,7 +58,17 @@ def nn_radius_clustering(points, radius): #TODO move to own file
 
     return labels
 
-def main(input_path : str, output : str, output_dir : str, tmp : str, boltz : bool, structure_db_path : str = STRUCTURE_DB, fingerprint_db_path : str = FINGERPRINT_DB, result_table_path : str = None):
+def aggregate_probs(prob_list):
+    acc = defaultdict(float)
+
+    for p in prob_list:
+        for k, v in p.items():
+            acc[k] += v
+
+    total = sum(acc.values())
+    return {k: v / total for k, v in acc.items()}
+
+def main(input_path : str, output : str, output_dir : str, tmp : str, boltz : bool, structure_db_path : str = STRUCTURE_DB, fingerprint_db_path : str = FINGERPRINT_DB, search_type=SEARCH_TYPE, result_table_path : str = None):
     """
     1. Amino-acid sequence of structure is BLASTed against the sequence file of the database, which contains known hydrogenase structures and proteins that contain FeS-Cofactors. Return hits of database sorted by E values.
     2. Structurally align the hits with the input protein on the Ca-atoms of the residues that match in the BLAST alignment.
@@ -83,7 +93,7 @@ def main(input_path : str, output : str, output_dir : str, tmp : str, boltz : bo
     # run foldseek against structure db
     printl("Initializing structure db")
     structureDB = StructureDB()
-    structureDB.load(structure_db_path=STRUCTURE_DB)
+    structureDB.load(structure_db_path=structure_db_path)
     
     printl("Search chains against structure db for structural homologs")
     fd_res = []
@@ -152,17 +162,17 @@ def main(input_path : str, output : str, output_dir : str, tmp : str, boltz : bo
         
 
 
-    fig = plot_with_protein_from_pdb(
-    pdb_path=input_path,
-    cofactor_coords=cofactor_sites,
-    labels=labels,
-    names=names,
-    out_html="protein_plot.html"
-    )
+    # fig = plot_with_protein_from_pdb(
+    # pdb_path=input_path,
+    # cofactor_coords=cofactor_sites,
+    # labels=labels,
+    # names=names,
+    # out_html="protein_plot.html"
+    # )
 
     # for each label -> search each point against fingerprintDB
     printl("Initialize Fingerprint DB")
-    fingerprintDB = FingerprintDB(FINGERPRINT_DB)
+    fingerprintDB = FingerprintDB(fingerprint_db_path)
 
     printl("Search each pocket point against the fingerprint db")
     results = {}
@@ -170,54 +180,95 @@ def main(input_path : str, output : str, output_dir : str, tmp : str, boltz : bo
         if SEARCH_TYPE == "absolut":
             results[cl] = Counter()
 
-            # for each cofactor
+            # for each cofactor create fingerprints
+            fingerprints = []
             for point in tqdm(cluster[cl], disable=not VERBOSE):
                 # create fingerprint
                 F = create_fingerprint(input_path, point)
+                fingerprints.append(F)
+                
+            hits = fingerprintDB.search(fingerprints, SEARCH_TYPE)
+            # count occurrences
+            results[cl].update(hits)
 
-                # check fingerprintdb
-                #hits = search_against_fingerprint_db(F, fingerprint_db_path)
-                if SEARCH_TYPE == "absolut":
-                    hits = fingerprintDB.search(F, SEARCH_TYPE)
-
-                    if hits:
-                        hits = fingerprintDB.get_model().classes_[hits[0].argmax(axis=1)]
-                # count occurrences
-                results[cl].update(hits)
-        
         elif SEARCH_TYPE == "logreg_mc":
             # calculate mass center of cluster
             M = np.array(cluster[cl])
             center = calculate_center(M)
-            F = create_fingerprint(input_path, center)
+            F = [create_fingerprint(input_path, center)]
             hits = fingerprintDB.search(F, "logreg")
-            if hits:
-                labels = fingerprintDB.get_model().classes_
-                probs = hits[0].flatten()
-                hits = sorted(zip(labels, probs), key=lambda x: x[1], reverse=True)
-            else: 
-                hits = None
 
-            results[cl] = hits
+            results[cl] = Counter(hits[0])
 
         elif SEARCH_TYPE == "logreg_sum":
             results[cl] = Counter()
 
-            # for each cofactor
+            # for each cofactor create fingerprints
+            fingerprints = []
             for point in tqdm(cluster[cl], disable=not VERBOSE):
                 # create fingerprint
                 F = create_fingerprint(input_path, point)
+                fingerprints.append(F)
 
-                # check fingerprintdb
-                hits = fingerprintDB.search(F, "logreg")
+            # check fingerprintdb
+            hits = fingerprintDB.search(fingerprints, "logreg")
 
-                if hits:
-                    hits = fingerprintDB.get_model().classes_[hits[0].argmax(axis=1)]
+            # count occurrences
+            results[cl] = aggregate_probs(hits)
 
-                # count occurrences
-                results[cl].update(hits)
+        elif SEARCH_TYPE == "svm_sum":
+            results[cl] = Counter()
 
-            
+            # for each cofactor create fingerprints
+            fingerprints = []
+            for point in tqdm(cluster[cl], disable=not VERBOSE):
+                # create fingerprint
+                F = create_fingerprint(input_path, point)
+                fingerprints.append(F)
+
+            # check fingerprintdb
+            hits = fingerprintDB.search(fingerprints, "svm")
+
+            # count occurrences
+            results[cl] = aggregate_probs(hits)
+
+        elif SEARCH_TYPE == "svm_mc":
+            # calculate mass center of cluster
+            M = np.array(cluster[cl])
+            center = calculate_center(M)
+            F = [create_fingerprint(input_path, center)]
+            hits = fingerprintDB.search(F, "svm")
+
+            results[cl] = Counter(hits[0])
+
+        elif SEARCH_TYPE == "mlp_sum":
+            results[cl] = Counter()
+
+            # for each cofactor create fingerprints
+            fingerprints = []
+            for point in tqdm(cluster[cl], disable=not VERBOSE):
+                # create fingerprint
+                F = create_fingerprint(input_path, point)
+                fingerprints.append(F)
+
+            # check fingerprintdb
+            hits = fingerprintDB.search(fingerprints, "mlp")
+
+            # count occurrences
+            results[cl] = aggregate_probs(hits)
+
+        elif SEARCH_TYPE == "mlp_mc":
+            # calculate mass center of cluster
+            M = np.array(cluster[cl])
+            center = calculate_center(M)
+            F = [create_fingerprint(input_path, center)]
+            hits = fingerprintDB.search(F, "mlp")
+
+            results[cl] = Counter(hits[0])
+
+    print(results)
+    exit(0)
+
     """
     The selection mechanic might change using a different database/search engine.
     For test reasons:
