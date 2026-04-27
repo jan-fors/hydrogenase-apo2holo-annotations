@@ -33,6 +33,7 @@ from src.utils.constants import (
     VERBOSE,
     SEARCH_TYPE
 )
+from pprint import pprint
 from src.database.StructureDB import StructureDB
 from src.database.FingerprintDB import FingerprintDB
 from src.utils.smiles import SMILES
@@ -166,25 +167,57 @@ def main(input_path : str, output : str, output_dir : str, tmp : str, boltz : bo
     printl("Search each pocket point against the fingerprint db")
     results = {}
     for cl in cluster.keys():
-        results[cl] = Counter()
+        if SEARCH_TYPE == "absolut":
+            results[cl] = Counter()
 
-        # for each cofactor
-        for point in tqdm(cluster[cl], disable=not VERBOSE):
-            # create fingerprint
-            F = create_fingerprint(input_path, point)
+            # for each cofactor
+            for point in tqdm(cluster[cl], disable=not VERBOSE):
+                # create fingerprint
+                F = create_fingerprint(input_path, point)
 
-            # check fingerprintdb
-            #hits = search_against_fingerprint_db(F, fingerprint_db_path)
-            if SEARCH_TYPE == "absolut":
-                hits = fingerprintDB.search(F, SEARCH_TYPE)
-            elif SEARCH_TYPE == "logreg":
-                hits = fingerprintDB.search(F, SEARCH_TYPE)
+                # check fingerprintdb
+                #hits = search_against_fingerprint_db(F, fingerprint_db_path)
+                if SEARCH_TYPE == "absolut":
+                    hits = fingerprintDB.search(F, SEARCH_TYPE)
+
+                    if hits:
+                        hits = fingerprintDB.get_model().classes_[hits[0].argmax(axis=1)]
+                # count occurrences
+                results[cl].update(hits)
+        
+        elif SEARCH_TYPE == "logreg_mc":
+            # calculate mass center of cluster
+            M = np.array(cluster[cl])
+            center = calculate_center(M)
+            F = create_fingerprint(input_path, center)
+            hits = fingerprintDB.search(F, "logreg")
+            if hits:
+                labels = fingerprintDB.get_model().classes_
+                probs = hits[0].flatten()
+                hits = sorted(zip(labels, probs), key=lambda x: x[1], reverse=True)
+            else: 
+                hits = None
+
+            results[cl] = hits
+
+        elif SEARCH_TYPE == "logreg_sum":
+            results[cl] = Counter()
+
+            # for each cofactor
+            for point in tqdm(cluster[cl], disable=not VERBOSE):
+                # create fingerprint
+                F = create_fingerprint(input_path, point)
+
+                # check fingerprintdb
+                hits = fingerprintDB.search(F, "logreg")
 
                 if hits:
                     hits = fingerprintDB.get_model().classes_[hits[0].argmax(axis=1)]
-            # count occurrences
-            results[cl].update(hits)
 
+                # count occurrences
+                results[cl].update(hits)
+
+            
     """
     The selection mechanic might change using a different database/search engine.
     For test reasons:
@@ -208,27 +241,65 @@ def main(input_path : str, output : str, output_dir : str, tmp : str, boltz : bo
     # identify active site
     key_active_site = None
     amount_active_site = 0
+    proba_active_site = 0.0
     for cl in results.keys():
-        tmp = dict(results[cl])
-        if not tmp:
-            continue
+        if SEARCH_TYPE == "absolut":
+            tmp = dict(results[cl])
+            if not tmp:
+                continue
 
-        lst = sorted(tmp.items(), key=lambda x: x[1], reverse=True)
+            lst = sorted(tmp.items(), key=lambda x: x[1], reverse=True)
 
-        first = lst[0][0]
-        try:
-            second = lst[1][0]
-        except:
-            second = ""
+            first = lst[0][0]
+            try:
+                second = lst[1][0]
+            except:
+                second = ""
 
-        if "active_site" in first or "active_site" in second:
-            if key_active_site == None:
-                key_active_site = cl
-                amount_active_site = tmp["active_site"]
-            else:
-                if amount_active_site < tmp["active_site"]:
+            if "active_site" in first or "active_site" in second:
+                if key_active_site == None:
                     key_active_site = cl
                     amount_active_site = tmp["active_site"]
+                else:
+                    if amount_active_site < tmp["active_site"]:
+                        key_active_site = cl
+                        amount_active_site = tmp["active_site"]
+
+        elif SEARCH_TYPE == "logreg_mc":
+            # get the one with the highest probability
+            # check if results[cl] is empty
+            if not results[cl]:
+                continue
+            if results[cl][0][0] == "active_site":
+                if key_active_site == None:
+                    key_active_site = cl
+                    proba_active_site = results[cl][0][1]
+                else:
+                    if proba_active_site < results[cl][0][1]:
+                        key_active_site = cl
+                        proba_active_site = results[cl][0][1]
+
+        elif SEARCH_TYPE == "logreg_sum":
+            tmp = dict(results[cl])
+            if not tmp:
+                continue
+
+            lst = sorted(tmp.items(), key=lambda x: x[1], reverse=True)
+
+            first = lst[0][0]
+            try:
+                second = lst[1][0]
+            except:
+                second = ""
+
+            if "active_site" in first or "active_site" in second:
+                if key_active_site == None:
+                    key_active_site = cl
+                    amount_active_site = tmp["active_site"]
+                else:
+                    if amount_active_site < tmp["active_site"]:
+                        key_active_site = cl
+                        amount_active_site = tmp["active_site"]
 
     # assign active site
     active_site["formula"] = "active_site"
@@ -248,18 +319,34 @@ def main(input_path : str, output : str, output_dir : str, tmp : str, boltz : bo
     for cl in results.keys():
         if cl == key_active_site:
             continue
-        tmp = dict(results[cl])
-        if not tmp:
-            print(f"{cl} is an empty cluster. Removing it..")
-            continue
 
-        lst = sorted(tmp.items(), key=lambda x: x[1], reverse=True) #TODO muss true sein?
-        formula = lst[0][0]
+        if SEARCH_TYPE == "absolut":
+            tmp = dict(results[cl])
+            if not tmp:
+                print(f"{cl} is an empty cluster. Removing it..")
+                continue
 
-        if formula == "active_site":
-            formula = lst[1][0]
+            lst = sorted(tmp.items(), key=lambda x: x[1], reverse=True) #TODO muss true sein?
+            formula = lst[0][0]
 
-  
+            if formula == "active_site":
+                formula = lst[1][0]
+            
+        elif SEARCH_TYPE == "logreg_mc":
+            formula = results[cl][0][0]
+
+        elif SEARCH_TYPE == "logreg_sum":
+            tmp = dict(results[cl])
+            if not tmp:
+                print(f"{cl} is an empty cluster. Removing it..")
+                continue
+
+            lst = sorted(tmp.items(), key=lambda x: x[1], reverse=True) #TODO muss true sein?
+            formula = lst[0][0]
+
+            if formula == "active_site":
+                formula = lst[1][0]
+
         # calculate cluster mass centers for clusters with  
         M = np.array(cluster[cl])
 
@@ -270,7 +357,7 @@ def main(input_path : str, output : str, output_dir : str, tmp : str, boltz : bo
 
         printl(f"Cluster: {cl}, formula: {formula}, cysteines: {cysteines}")
 
-     
+    
         if formula != "protein":
             fes_cluster.append(
                 {
@@ -381,6 +468,8 @@ def main(input_path : str, output : str, output_dir : str, tmp : str, boltz : bo
                     },
                 "cystein-connections": fes_cluster[i]["cysteines"]
             }
+
+    pprint(result)
 
     # write json output file
     json_path = os.path.join(out, "result.json")

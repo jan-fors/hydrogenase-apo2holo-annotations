@@ -1,4 +1,4 @@
-name: a2h2
+name: apo2holo
 channels:
   - defaults
   - conda-forge

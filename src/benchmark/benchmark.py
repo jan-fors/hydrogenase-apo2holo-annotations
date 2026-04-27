@@ -105,7 +105,7 @@ if CREATE_DATABASES:
         os.makedirs(structure_db, exist_ok=True)
         structure_db = os.path.join(structure_db, "structureDB")
         
-        fingerprint_db = os.path.join(db_dir, "fingerprintDB_6")
+        fingerprint_db = os.path.join(db_dir, "fingerprintDB")
         os.makedirs(fingerprint_db, exist_ok=True)
 
         build(input_structure_dir, output_structure_dir, structure_db, fingerprint_db)
@@ -120,7 +120,7 @@ if PREDICT:
         structure_db_path = os.path.join(BENCHMARKING_DIR, set, "db", "structureDB", "structureDB")
         fingerprint_db = os.path.join(BENCHMARKING_DIR, set, "db", "fingerprintDB_6")
 
-        output_dir = os.path.join(BENCHMARKING_DIR, set, "logreg_6")
+        output_dir = os.path.join(BENCHMARKING_DIR, set, "logreg_updated_6")
         os.makedirs(output_dir, exist_ok=True)
 
         test_set = os.path.join(BENCHMARKING_DIR, set, "test")
@@ -132,8 +132,6 @@ if PREDICT:
                 main(input_path=structure_path, output=structure_name, output_dir=output_dir,structure_db_path=structure_db_path, fingerprint_db_path=fingerprint_db, tmp="tmp", boltz=False)
             except:
                 continue
-
-        
 
     print(f"[{datetime.now()}] Annotation done")
 

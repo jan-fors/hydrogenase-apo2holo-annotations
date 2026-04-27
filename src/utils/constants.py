@@ -27,4 +27,4 @@ TMP="tmp"
 
 MAX_ITER = 400
 SOLVER = 'lbfgs'
-SEARCH_TYPE = "absolut"#"absolut"#
+SEARCH_TYPE = "logreg_sum"   #"absolut","logreg_sum", "svm_sum", "svm_mc", "logreg_mc", "nn_mc", "nn_sum"

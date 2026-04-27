@@ -10,19 +10,24 @@
 - [X] group
 - [ ] select
     - [X] Logistic Regression for each cluster? -> maybe later first just with similarity
-    - [ ] https://dev.to/prajak002/building-a-vector-database-from-scratch-in-python-5eg
 - [X] split models in build db
 - [X] Create FingerprintDB class
     - [X] fill
 - [X] return
-- [ ] option to return top x different with scores
 - [X] load fingerprintDB once and use not every time search against is called
 - [X] Benchmarking überarbeiten
-(- [ ] add mirrowed proteins to raw data or dedup set with the hope to increase hits)
 - [ ] finalize output
+- [ ] implement models
+    - [ ] svm mc & sum
+    - [ ] mlp classifier mc & sum
+    - [ ] pytorchnn mc & sum
+- [ ] perform benchmarking grid search
+    - [ ] define parameters
+
+## Extra
+- [ ] option to return top x different with scores
 
 ## Benchmarking
-- [ ] https://www.geeksforgeeks.org/machine-learning/auc-roc-curve/
 - [ ] colabfold structures as input for benchmarking? Loss ap02holo(colabfold prediction) against experimental prediction
 
 ## Issues:
@@ -31,6 +36,6 @@
 - [ ] too many with non conform fes cluster amount
     - [ ] bad pre filtering?
     - [X] correct subunits in teststructures? -> seems so
-    - [ ] active site identification is bad
+    - [X] active site identification is bad
     - [ ] increase fingerprint radius for distal cluster?
-    - [ ] **one proba search per mass center for each cluster spot?**
+    - [X] **one proba search per mass center for each cluster spot?** -> not so good
