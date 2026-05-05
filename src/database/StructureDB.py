@@ -2,8 +2,8 @@ import os
 from pathlib import Path
 from src.utils.constants import STRUCTURE_DB, STRUCTURE_DIR, FOLDSEEK_OUT_FORMAT, TMP
 from src.io.printl import printl
-from src.utils.get_chains import get_chains
-from src.utils.extract_chain import extract_chain
+from src.utils.protein.get_chains import get_chains
+from src.utils.protein.extract_chain import extract_chain
 from src.filter.apply_blacklist import apply_blacklist_to_input_structures
 from Bio import PDB
 import subprocess

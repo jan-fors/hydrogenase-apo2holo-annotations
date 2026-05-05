@@ -1,3 +1,6 @@
+from pathlib import Path
+
+
 VERBOSE=True
 
 COFACTOR_BLACKLIST = [
@@ -17,21 +20,23 @@ AA_ORDER = [
     "SER","THR","TRP","TYR","VAL"
 ]
 
-STRUCTURE_DIR="dat/single_chains"#"dat/single_chains"#2026-03-06-raw_structures"
+STRUCTURE_DIR=Path("db/single_chains")#"dat/single_chains"#2026-03-06-raw_structures"
 
-STRUCTURE_DB="db/structureDB/structureDB"
+NN_CLUSTERING_RADIUS = 4.0
+
+STRUCTURE_DB=Path("db/structureDB/structureDB")
 FOLDSEEK_OUT_FORMAT="query,target,fident,alnlen,mismatch,gapopen,qstart,qend,tstart,tend,evalue,bits,u,t"
 
 FIDENT_THRESHOLD=0.1
 BITS_THRESHOLD=500
 
 FINGERPRINT_RADIUS = 5
-FINGERPRINT_DB="db/fingerprintDB"
+FINGERPRINT_DB=Path("db/fingerprintDB")
 MODEL=""
 
 TMP="tmp"
 
-SEARCH_TYPE = "svm_sum"   #"absolut","logreg_sum", "svm_sum", "svm_mc", "logreg_mc", "nn_mc", "nn_sum"
+SEARCH_TYPE = "svm_sum"   #"absolut", "logreg_sum", "svm_sum", "svm_mc", "logreg_mc", "mlp_mc", "mlp_sum"
 
 # logreg params
 MAX_ITER = 1000
