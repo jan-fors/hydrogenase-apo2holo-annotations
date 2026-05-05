@@ -1,64 +1,52 @@
 import os
 from pathlib import Path
-#from src.database.search_against_structuredb import search_against_structuredb
-from src.utils.get_chains import get_chains
-from src.utils.extract_chain import extract_chain
+from src.utils.protein.get_chains import get_chains
+from src.utils.protein.extract_chain import extract_chain
 from src.parser.parse_msearch_output import parse_msearch_output
 from src.filter.filter_msearch_output import filter_msearch_output
-#from src.database.get_structure_path import get_structure_path
-from src.utils.extract_cofactors import extract_cofactors
-from src.utils.apply_transformations_to_cofactors import apply_transformations_to_cofactors
+from src.utils.protein.extract_cofactors import extract_cofactors
+from src.utils.protein.apply_transformations_to_cofactors import apply_transformations_to_cofactors
 import numpy as np
 from src.parser.parse_t import parse_t
 from src.parser.parse_u import parse_u
-from src.utils.calculate_geometric_centers import calculate_geometric_centers, calculate_center
+from src.utils.geometric.calculate_geometric_centers import calculate_geometric_centers, calculate_center
 from src.io.plot import plot_with_protein_from_pdb
 from src.filter.apply_blacklist import apply_blacklist
 from src.filter.apply_whitelist import apply_whitelist
 from src.fingerprint.create_fingerprint import create_fingerprint
-from src.io.printl import printl
+from src.io.printl import printl, print_probabilities
 from src.io.result_table import write_to_result_table
 import json
-from sklearn.neighbors import NearestNeighbors
-from sklearn.neighbors import NearestNeighbors
-from scipy.sparse.csgraph import connected_components
+from src.utils.geometric.nearest_neighbor_clustering import nn_radius_clustering
 from tqdm import tqdm
-from src.utils.identfy_cysteines import identify_cysteines
-from src.utils.point_distance import point_distance
+from src.utils.protein.identfy_cysteines import identify_cysteines
+from src.utils.geometric.point_distance import point_distance
 from collections import Counter
 from src.utils.constants import (
     STRUCTURE_DB,
     FINGERPRINT_DB,
     VERBOSE,
-    SEARCH_TYPE
+    SEARCH_TYPE,
+    NN_CLUSTERING_RADIUS
 )
 from pprint import pprint
 from src.database.StructureDB import StructureDB
 from src.database.FingerprintDB import FingerprintDB
 from src.utils.smiles import SMILES
+from typing import List
 from collections import defaultdict
 
-def nn_radius_clustering(points, radius): #TODO move to own file
+######################## HELPER FUNCTIONS ########################
+
+def _counter_to_probs(counter):
+    total = sum(counter.values())
+    if total == 0:
+        return {k: 0 for k in counter}
+    return {k: v / total for k, v in counter.items()}
+
+def _aggregate_probs(prob_list):
     """
-    points: numpy array (N,3)
-    radius: distance threshold
-
-    Returns:
-        labels: numpy array (N,)
     """
-
-    # Build radius neighbor graph
-    nbrs = NearestNeighbors(radius=radius)
-    nbrs.fit(points)
-
-    adjacency_matrix = nbrs.radius_neighbors_graph(points)
-
-    # Find connected components
-    n_components, labels = connected_components(adjacency_matrix)
-
-    return labels
-
-def aggregate_probs(prob_list):
     acc = defaultdict(float)
 
     for p in prob_list:
@@ -68,43 +56,30 @@ def aggregate_probs(prob_list):
     total = sum(acc.values())
     return {k: v / total for k, v in acc.items()}
 
-def main(input_path : str, output : str, output_dir : str, tmp : str, boltz : bool, structure_db_path : str = STRUCTURE_DB, fingerprint_db_path : str = FINGERPRINT_DB, search_type=SEARCH_TYPE, result_table_path : str = None):
+def _extract_protein_chains_from_file(input_path : Path, out : Path) -> List[Path]:
     """
-    1. Amino-acid sequence of structure is BLASTed against the sequence file of the database, which contains known hydrogenase structures and proteins that contain FeS-Cofactors. Return hits of database sorted by E values.
-    2. Structurally align the hits with the input protein on the Ca-atoms of the residues that match in the BLAST alignment.
-    3. Identify the positions of the Active Site as well as the FeS Cofactors
-    4. Check the surrounding of the mass center and create aminoacid fingerprints
-    5. Group the cofactors into the groups: activesite, proximal, medial and distal cluster
-    6. select the most reasonable combination of cofactors based on the fingerprints.
-    7. create output file and return
     """
-    # create outputfolder with name output 
-    # TODO move to cli.py
-    out = Path(os.path.join(output_dir, output))
-    os.makedirs(out, exist_ok=True)
-    
     # extract chains
     printl("Extract chains from protein file")
     chains = get_chains(input_path)
     chain_paths = []
     for chain in chains:
         chain_paths.append(extract_chain(input_path, out, chain))
-    
-    # run foldseek against structure db
-    printl("Initializing structure db")
-    structureDB = StructureDB()
-    structureDB.load(structure_db_path=structure_db_path)
-    
-    printl("Search chains against structure db for structural homologs")
+
+    return chain_paths
+
+def _structure_db_search(structureDB : StructureDB, chain_paths : List[Path], out : Path) -> List[tuple[float, float, float]]:
+    """
+    """
+    # perform foldseek searches
     fd_res = []
     for cp in tqdm(chain_paths, disable=not VERBOSE):
         fd_res.append(structureDB.search(cp, out))
-        #fd_res.append(search_against_structuredb(cp, out, tmp, structure_db_path))
 
+    # parse the results
     cofactor_sites = []
-    names = []
+    names = [] # ONLY relevant if plot is created
 
-    # parse results for each chain and extract cofactors
     printl("parse the results of the homology search in order to identify possible binding pockets")
     for fd_r in tqdm(fd_res, disable=not VERBOSE):
         # parse output
@@ -139,30 +114,13 @@ def main(input_path : str, output : str, output_dir : str, tmp : str, boltz : bo
             # calculate mass center
             geometric_centers = calculate_geometric_centers(cofactors)
 
-            # get coordinate valus
+            # get coordinate values
             coords = list(geometric_centers.values())
             names.extend(list(geometric_centers.keys()))
             cofactor_sites.extend(coords)
 
-    if len(cofactor_sites) == 0:
-        print("No Cofactor Sites found")
-        exit(0)
-
-    # sort cofactors into clusters
-    printl("cluster the possible binding pockets")
-    labels = nn_radius_clustering(cofactor_sites, radius=4.0)
-
-    # rearrange data
-    printl("Rearrange data into pockets")
-    cluster = {}
-    for i in tqdm(range(len(labels)), disable=not VERBOSE):
-        if labels[i] not in cluster.keys():
-            cluster[labels[i]] = []
-        cluster[labels[i]].append(cofactor_sites[i])
-        
-
-
-    # fig = plot_with_protein_from_pdb(
+    # plot cofactor sites
+     # fig = plot_with_protein_from_pdb(
     # pdb_path=input_path,
     # cofactor_coords=cofactor_sites,
     # labels=labels,
@@ -170,366 +128,322 @@ def main(input_path : str, output : str, output_dir : str, tmp : str, boltz : bo
     # out_html="protein_plot.html"
     # )
 
-    # for each label -> search each point against fingerprintDB
-    printl("Initialize Fingerprint DB")
-    fingerprintDB = FingerprintDB(fingerprint_db_path)
+    return cofactor_sites
 
-    printl("Search each pocket point against the fingerprint db")
-    results = {}
-    for cl in cluster.keys():
-        if SEARCH_TYPE == "absolut":
-            results[cl] = Counter()
-
-            # for each cofactor create fingerprints
-            fingerprints = []
-            for point in tqdm(cluster[cl], disable=not VERBOSE):
-                # create fingerprint
-                F = create_fingerprint(input_path, point)
-                fingerprints.append(F)
-                
-            hits = fingerprintDB.search(fingerprints, SEARCH_TYPE)
-            # count occurrences
-            results[cl].update(hits)
-
-        elif SEARCH_TYPE == "logreg_mc":
-            # calculate mass center of cluster
-            M = np.array(cluster[cl])
-            center = calculate_center(M)
-            F = [create_fingerprint(input_path, center)]
-            hits = fingerprintDB.search(F, "logreg")
-
-            results[cl] = Counter(hits[0])
-
-        elif SEARCH_TYPE == "logreg_sum":
-            results[cl] = Counter()
-
-            # for each cofactor create fingerprints
-            fingerprints = []
-            for point in tqdm(cluster[cl], disable=not VERBOSE):
-                # create fingerprint
-                F = create_fingerprint(input_path, point)
-                fingerprints.append(F)
-
-            # check fingerprintdb
-            hits = fingerprintDB.search(fingerprints, "logreg")
-
-            # count occurrences
-            results[cl] = aggregate_probs(hits)
-
-        elif SEARCH_TYPE == "svm_sum":
-            results[cl] = Counter()
-
-            # for each cofactor create fingerprints
-            fingerprints = []
-            for point in tqdm(cluster[cl], disable=not VERBOSE):
-                # create fingerprint
-                F = create_fingerprint(input_path, point)
-                fingerprints.append(F)
-
-            # check fingerprintdb
-            hits = fingerprintDB.search(fingerprints, "svm")
-
-            # count occurrences
-            results[cl] = aggregate_probs(hits)
-
-        elif SEARCH_TYPE == "svm_mc":
-            # calculate mass center of cluster
-            M = np.array(cluster[cl])
-            center = calculate_center(M)
-            F = [create_fingerprint(input_path, center)]
-            hits = fingerprintDB.search(F, "svm")
-
-            results[cl] = Counter(hits[0])
-
-        elif SEARCH_TYPE == "mlp_sum":
-            results[cl] = Counter()
-
-            # for each cofactor create fingerprints
-            fingerprints = []
-            for point in tqdm(cluster[cl], disable=not VERBOSE):
-                # create fingerprint
-                F = create_fingerprint(input_path, point)
-                fingerprints.append(F)
-
-            # check fingerprintdb
-            hits = fingerprintDB.search(fingerprints, "mlp")
-
-            # count occurrences
-            results[cl] = aggregate_probs(hits)
-
-        elif SEARCH_TYPE == "mlp_mc":
-            # calculate mass center of cluster
-            M = np.array(cluster[cl])
-            center = calculate_center(M)
-            F = [create_fingerprint(input_path, center)]
-            hits = fingerprintDB.search(F, "mlp")
-
-            results[cl] = Counter(hits[0])
-
-    print(results)
-    exit(0)
-
+def _arrange_cofactors_into_clusters(cofactor_sites : List[tuple[float, float, float]]) -> dict:
     """
-    The selection mechanic might change using a different database/search engine.
-    For test reasons:
-    - for every cluster that has hits
-    - choose type that has most hits
-        - FeS or Active Site
-            - if active site cluster -> active site smiles
-            - if FeS wins -> type smiles
     """
+    # perform clustering
+    labels = nn_radius_clustering(cofactor_sites, radius=NN_CLUSTERING_RADIUS)
 
-    # select for each cluster the best result
-    printl("Select the best matching cofactors")
+    # sort into clusters
+    cluster = {}
+    for i in tqdm(range(len(labels)), disable=not VERBOSE):
+        if labels[i] not in cluster.keys():
+            cluster[labels[i]] = []
+        cluster[labels[i]].append(cofactor_sites[i])
 
-    active_site = {
-        "x": None,
-        "y": None,
-        "z": None,
-        "cysteines": None
-    }
+    return cluster
 
-    # identify active site
-    key_active_site = None
-    amount_active_site = 0
-    proba_active_site = 0.0
-    for cl in results.keys():
-        if SEARCH_TYPE == "absolut":
-            tmp = dict(results[cl])
-            if not tmp:
-                continue
+def _create_fingerprints(input_path : Path, coordinates : List[tuple[float, float, float]]):
+    """"""
+    fingerprints = []
+    for point in tqdm(coordinates, disable=not VERBOSE):
+        # create fingerprint
+        F = create_fingerprint(input_path, point)
+        fingerprints.append(F)
 
-            lst = sorted(tmp.items(), key=lambda x: x[1], reverse=True)
+    return fingerprints
 
-            first = lst[0][0]
-            try:
-                second = lst[1][0]
-            except:
-                second = ""
+def _get_best_hits_name(predictions : dict) -> str:
+    """"""
+    res = None
+    res_logit = 0.0
 
-            if "active_site" in first or "active_site" in second:
-                if key_active_site == None:
-                    key_active_site = cl
-                    amount_active_site = tmp["active_site"]
-                else:
-                    if amount_active_site < tmp["active_site"]:
-                        key_active_site = cl
-                        amount_active_site = tmp["active_site"]
+    for k in predictions.keys():
+        if predictions[k] > res_logit:
+            res = k
+            res_logit = predictions[k]
 
-        elif SEARCH_TYPE == "logreg_mc":
-            # get the one with the highest probability
-            # check if results[cl] is empty
-            if not results[cl]:
-                continue
-            if results[cl][0][0] == "active_site":
-                if key_active_site == None:
-                    key_active_site = cl
-                    proba_active_site = results[cl][0][1]
-                else:
-                    if proba_active_site < results[cl][0][1]:
-                        key_active_site = cl
-                        proba_active_site = results[cl][0][1]
+    return res
 
-        elif SEARCH_TYPE == "logreg_sum":
-            tmp = dict(results[cl])
-            if not tmp:
-                continue
+def _identify_active_site(best_hits : dict) -> int:
+    """
+    Edgecases:
+    1. no active site -> Return None
+    2. more than one acitve site -> Return -1
+    """
+    active_site_counter = 0
+    active_site_index = None
 
-            lst = sorted(tmp.items(), key=lambda x: x[1], reverse=True)
+    for h in best_hits:
+        if best_hits[h] == "active_site":
+            active_site_counter += 1
+            active_site_index = int(h)
 
-            first = lst[0][0]
-            try:
-                second = lst[1][0]
-            except:
-                second = ""
-
-            if "active_site" in first or "active_site" in second:
-                if key_active_site == None:
-                    key_active_site = cl
-                    amount_active_site = tmp["active_site"]
-                else:
-                    if amount_active_site < tmp["active_site"]:
-                        key_active_site = cl
-                        amount_active_site = tmp["active_site"]
-
-    # assign active site
-    active_site["formula"] = "active_site"
-    # calculate cluster mass centers for clusters with  
-    M = np.array(cluster[key_active_site])
-
-    center = calculate_center(M)
-    active_site["x"] = center[0]
-    active_site["y"] = center[1]
-    active_site["z"] = center[2]
-    # identfy cysteins which are important for binding
-    cysteines = identify_cysteines(input_path, center)
-    active_site["cysteines"] = cysteines
-
-    # go through other cluster
-    fes_cluster = []
-    for cl in results.keys():
-        if cl == key_active_site:
-            continue
-
-        if SEARCH_TYPE == "absolut":
-            tmp = dict(results[cl])
-            if not tmp:
-                print(f"{cl} is an empty cluster. Removing it..")
-                continue
-
-            lst = sorted(tmp.items(), key=lambda x: x[1], reverse=True) #TODO muss true sein?
-            formula = lst[0][0]
-
-            if formula == "active_site":
-                formula = lst[1][0]
-            
-        elif SEARCH_TYPE == "logreg_mc":
-            formula = results[cl][0][0]
-
-        elif SEARCH_TYPE == "logreg_sum":
-            tmp = dict(results[cl])
-            if not tmp:
-                print(f"{cl} is an empty cluster. Removing it..")
-                continue
-
-            lst = sorted(tmp.items(), key=lambda x: x[1], reverse=True) #TODO muss true sein?
-            formula = lst[0][0]
-
-            if formula == "active_site":
-                formula = lst[1][0]
-
-        # calculate cluster mass centers for clusters with  
-        M = np.array(cluster[cl])
-
-        center = calculate_center(M)
-
-        # identfy cysteins which are important for binding
-        cysteines = identify_cysteines(input_path, center)
-
-        printl(f"Cluster: {cl}, formula: {formula}, cysteines: {cysteines}")
-
+    if active_site_counter > 1:
+        return -1
+    else:
+        return active_site_index
     
-        if formula != "protein":
-            fes_cluster.append(
-                {
-                    "formula": formula,
-                    "x": center[0],
-                    "y": center[1],
-                    "z": center[2],
-                    "cysteines": cysteines
-                }
-            )
+def _identify_fes_cluster(best_hits : dict, active_site_key : int) -> List[int]:
+    """
+    best hits contains:
+    key -> cluster number
+    item -> name of cofactor
+    """
+    keep = []
+    for h in best_hits:
+        if h != active_site_key and best_hits[h] != "protein":
+            keep.append(h)
 
-    # try to map into known system
-    is_conform = False
+    return keep
 
-    # calculate distanz of each fes cluster to active site
-    for i in range(len(fes_cluster)):
-        fes_cluster[i]["dist"] = point_distance(active_site["x"], active_site["y"], active_site["z"], fes_cluster[i]["x"], fes_cluster[i]["y"], fes_cluster[i]["z"])
+def _sort_into_hyd_format(active_site_mass_center : tuple, fes_cluster_mass_center : dict) -> tuple:
+    """
+    """
+    proximal_key = None
+    medial_key = None
+    distal_key = None
 
-    # sort by length
-    sorted_data = sorted(fes_cluster, key=lambda d: d["dist"])
+    distances = []
 
-    # validate/interpret output
-    if len(fes_cluster) > 3:
-        proximal = None
-        medial = None
-        distal = None
-        printl("Identified more than three fes cluster. Cannot choose proximal, medial and distal.")
-    elif len(fes_cluster) < 3:
-        proximal = None
-        medial = None
-        distal = None
-        printl("Identified less than 3 fes clusters. Cannot choose proximal, medial and distal.")
+    for k in fes_cluster_mass_center.keys():
+        dist = point_distance(active_site_mass_center[0], active_site_mass_center[1], active_site_mass_center[2], fes_cluster_mass_center[k][0], fes_cluster_mass_center[k][1], fes_cluster_mass_center[k][2])
+        distances.append((k, dist))
+
+    # sort distances by dist
+    sorted_distances = sorted(distances, key=lambda x: x[1])
+
+    try:
+        proximal_key = sorted_distances[0][0]
+    except IndexError:
+        printl("Not enough iron-sulfur clusters identified for proximal annotation")
+
+    try:
+        medial_key = sorted_distances[1][0]
+    except IndexError:
+        printl("Not enough iron-sulfur clusters identified for medial annotation")
+
+    try:
+        distal_key = sorted_distances[2][0]                 
+    except IndexError:
+        printl("Not enough iron-sulfur clusters identified for distal annotation")
+
+    return proximal_key, medial_key, distal_key
+
+######################## HELPER FUNCTIONS ########################
+
+def identify_possible_cofactor_pockets(structure_db_path : Path, input_path : Path, out : Path):
+    """
+    The structure db is searched for good matches and the binding pockets of the template structures are printed onto the structure in question.
+    Return:
+        dict cluster:
+            - list [cofactor sites x, y, z]
+    """
+    # init structure db
+    printl("Initializing structure database...")
+    structureDB = StructureDB()
+    structureDB.load(structure_db_path=structure_db_path)
+
+    # extract chains
+    printl("Extracting protein chains...")
+    chain_paths = _extract_protein_chains_from_file(input_path=input_path, out=out)
+
+    # search against structuredb
+    printl("Search against structure database for structural homologs...")
+    cofactor_sites = _structure_db_search(structureDB=structureDB, chain_paths=chain_paths, out=out)
+
+    # little check if something was found
+    if len(cofactor_sites) == 0:
+        print("No Cofactor Sites found")
+        exit(0)
     else:
-        is_conform = True
+        printl(f"Found {len(cofactor_sites)} possible pockets")
+
+    # sort cofactors into cluster through nearest neighbor clustering
+    printl("Cluster cofactor sites into possible binding pockets...")
+    clusters = _arrange_cofactors_into_clusters(cofactor_sites=cofactor_sites)
+    printl(f"Sorted possible pockets into {len(clusters)} clusters.")
+
+    return clusters
+
+def predict_cofactors_by_pockets(fingerprint_db_path : Path, pockets : dict, search_type : str, input_path : Path):
+    """
+    """
+    # Initialize fingerprintDB
+    printl("Initializing fingerprint database...")
+    fingerprintDB = FingerprintDB(fingerprint_db_path)
+    
+    # search each pocket against 
+    printl("Searching each pocket point against the fingerprint database...")
+
+    pocket_hits = {}
+
+    for key in pockets.keys():
         
-        proximal = sorted_data[0]
-        medial = sorted_data[1]
-        distal = sorted_data[2]
+        if search_type == "absolut":
+            printl(f"Creating fingerprints for pocket {key}...")
+            fingerprints = _create_fingerprints(input_path=input_path, coordinates=pockets[key])
 
-    # define result
+            # search
+            printl(f"Searching pocket {key} against fingerprint database...")
+            hits = fingerprintDB.search(F=fingerprints, search_type=search_type)
 
-    if is_conform:
-        result = {
-            "active_site": {
-                "smiles": ":)",
-                "formula": active_site["formula"],
-                "coords":  {
-                    "x": active_site["x"],
-                    "y": active_site["y"],
-                    "z": active_site["z"]
-                    },
-                "cystein-connections": active_site["cysteines"]
-            },
-            "proximal": {
-                "smiles": ":)",
-                "formula": proximal["formula"],
-                "coords":  {
-                    "x": proximal["x"],
-                    "y": proximal["y"],
-                    "z": proximal["z"]
-                    },
-                "cystein-connections": proximal["cysteines"]
-            },
-            "medial": {
-                "smiles": ":)",
+            # count
+            pocket_hits[key] = Counter()
+            pocket_hits[key].update(hits)
 
-                "formula": medial["formula"],
-                "coords":  {
-                    "x": medial["x"],
-                    "y": medial["y"],
-                    "z": medial["z"]
-                    },
-                "cystein-connections": medial["cysteines"]
-            },
-            "distal": {
-                "smiles": ":)",
+            pocket_hits[key] = _counter_to_probs(pocket_hits[key])
 
+        elif search_type == "logreg_sum" or search_type == "mlp_sum" or search_type == "svm_sum":
+            printl(f"Creating fingerprints for pocket {key}...")
+            fingerprints = _create_fingerprints(input_path=input_path, coordinates=pockets[key])
 
-                "formula": distal["formula"],
-                "coords":  {
-                    "x": distal["x"],
-                    "y": distal["y"],
-                    "z": distal["z"]
-                    },
-                "cystein-connections": distal["cysteines"]
+            # search
+            printl(f"Searching pocket {key} against fingerprint database...")
+            hits = fingerprintDB.search(F=fingerprints, search_type=search_type.split("_")[0])
+
+            # count
+            pocket_hits[key] = _aggregate_probs(hits)
+
+        elif search_type == "logreg_mc" or search_type == "mlp_mc" or search_type == "svm_mc":
+            # create center
+            M = np.array(pockets[key])
+            center = calculate_center(M)
+            printl(f"Creating fingerprint for pocket {key}...")
+            F = [create_fingerprint(input_path, center)]
+            # search
+            printl(f"Searching pocket {key} against fingerprint database...")
+            hits = fingerprintDB.search(F=F, search_type=search_type.split("_")[0])
+
+            pocket_hits[key] = _counter_to_probs(Counter(hits[0]))
+
+        print_probabilities(pocket_hits[key])
+
+    return pocket_hits
+
+def choose_best_hit_per_pocket(prediction_per_pocket : dict) -> dict:
+    """
+    """
+    best_hits = {}
+
+    for p in prediction_per_pocket.keys():
+        best_hits[p] = _get_best_hits_name(prediction_per_pocket[p])
+
+    return best_hits
+
+def fit_into_hyd_structure(best_hits : dict, pockets : dict) -> tuple:
+    """
+    1. check if an active site was found
+        a. yes
+        b. does not fit into hyd
+    2. check what remaining cofactors there are
+        -> keep iron sulfur cluster
+    3. check distances of remaining cofactors to active site if exists
+    4. fit into proximal, ... terminology
+    """
+    active_site_key = _identify_active_site(best_hits)
+    
+    if active_site_key == -1: # two active sites identified
+        return None, None, None, None
+    elif active_site_key == None: # no active site identified
+        return None, None, None, None
+    
+    active_site_mass_center = calculate_center(np.array(pockets[active_site_key]))
+
+    fes_cluster_keys = _identify_fes_cluster(best_hits, active_site_key)
+    fes_cluster_mass_centers = {}
+    for k in fes_cluster_keys:
+        fes_cluster_mass_centers[k] = calculate_center(np.array(pockets[k]))    
+    
+    proximal_key, medial_key, distal_key = _sort_into_hyd_format(active_site_mass_center, fes_cluster_mass_centers)
+
+    return active_site_key, proximal_key, medial_key, distal_key
+
+def write_outputs(out : Path, structure_path : Path, pockets : dict, prediction_per_pocket : dict, best_hits_per_pocket : dict, active_site_key : int, proximal_key : int, medial_key : int, distal_key : int, boltz : bool, plot : bool):
+    """"""
+    # raw_results
+    output_dict = {}
+    for k in pockets.keys():
+        if best_hits_per_pocket[k] != "protein":
+            cysteines = identify_cysteines(structure_path=structure_path, coords=calculate_center(np.array(pockets[k])), radius=5.0)
+            output_dict[k] = {
+                "cluster": int(k),
+                "predicted_class": best_hits_per_pocket[k],
+                "smiles": SMILES[best_hits_per_pocket[k]],
+                "prediction": prediction_per_pocket[k],
+                "cysteines": cysteines
             }
-        }
-    else:
-        result = {
-            "active_site": {
-                "smiles": ":)",
-                "formula": active_site["formula"],
-                "coords":  {
-                    "x": active_site["x"],
-                    "y": active_site["y"],
-                    "z": active_site["z"]
-                    },
-                "cystein-connections": active_site["cysteines"]
-            }}
-        for i in range(len(fes_cluster)):
-            result[i] = {
-                "smiles": ":)",
-                "formula": fes_cluster[i]["formula"],
-                "coords":  {
-                    "x": fes_cluster[i]["x"],
-                    "y": fes_cluster[i]["y"],
-                    "z": fes_cluster[i]["z"]
-                    },
-                "cystein-connections": fes_cluster[i]["cysteines"]
-            }
 
-    pprint(result)
+    output_list = [output_dict[k] for k in output_dict.keys()]
 
-    # write json output file
-    json_path = os.path.join(out, "result.json")
-    json_text = json.dumps(result, ensure_ascii=False, indent=4)
+    ## write json output file
+    json_path = os.path.join(out, "raw_results.json")
+    json_text = json.dumps(output_list, ensure_ascii=False, indent=4)
+    printl(f"Writing raw output to {json_path}")
     with open(json_path, "w", encoding="utf-8") as f:
         f.write(json_text)
 
-    #   for testing write to table?
-    if result_table_path:
-        write_to_result_table(result, result_table_path)
 
-    # create yaml TODO
+    # results
+    result_dict = {}
+
+    if active_site_key != None:
+        result_dict["active_site"] = output_dict[active_site_key],
+    if proximal_key != None:
+        result_dict["proximal"] = output_dict[proximal_key],
+    if medial_key != None:
+        result_dict["medial"] = output_dict[medial_key],
+    if distal_key != None:
+        result_dict["distal"] = output_dict[distal_key]
+    
+    if len(result_dict.keys()) > 0:
+        json_path = os.path.join(out, "results.json")
+        json_text = json.dumps(result_dict, ensure_ascii=False, indent=4)
+        printl(f"Writing structured output to {json_path}")
+        with open(json_path, "w", encoding="utf-8") as f:
+            f.write(json_text)
+
+    # write boltz yaml output file
+    if boltz:
+        print("YAML CREATION TODO")
+
+    # create output graphic?
+    if plot:
+        print("CREATE PLOT TODO")
+
+def main(input_path : Path, out : Path, tmp : Path, boltz : bool, plot: bool, structure_db_path : Path = STRUCTURE_DB, fingerprint_db_path : Path = FINGERPRINT_DB, search_type=SEARCH_TYPE, result_table_path : str = None):
+    """
+
+    """
+    # step 1: identify possible cofactor pockets
+    pockets = identify_possible_cofactor_pockets(structure_db_path=structure_db_path, input_path=input_path, out=out)
+    
+    # step 2: predict each pocket
+    pred_per_pocket = predict_cofactors_by_pockets(fingerprint_db_path=fingerprint_db_path, pockets=pockets, search_type=search_type, input_path=input_path)
+
+    # step 3: choose best hit per pocket
+    best_hits_per_pocket = choose_best_hit_per_pocket(prediction_per_pocket=pred_per_pocket)
+
+    # step 4: fit into hyd?
+    active_site_key, proximal_key, medial_key, distal_key = fit_into_hyd_structure(best_hits=best_hits_per_pocket, pockets=pockets)
+
+    # step 5: output 
+    write_outputs(
+        out=out,
+        structure_path=input_path,
+        pockets=pockets,
+        prediction_per_pocket=pred_per_pocket,
+        best_hits_per_pocket=best_hits_per_pocket,
+        active_site_key=active_site_key,
+        proximal_key=proximal_key,
+        medial_key=medial_key,
+        distal_key=distal_key,
+        boltz=boltz,
+        plot=plot
+        )
+
+    
+
+

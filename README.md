@@ -34,6 +34,8 @@ python -m src.build <RAW_STRUCTURE_DIR> <OUTPUT_DIR FOR CHAINS> --structure-db-p
 - `OUTPUT_DIR FOR CHAINS`: Each structure is split into its chains and the chains are copied into this folder,
 - `--structure-db-path`: Path for the final structure database. Database is created inside a new folder inside of this specified path 
 
+Example `python -m src.build dat/2026-03-06-dedup_dimers db/single_chains --structure-db-path db/structureDB --fingerprint-db-path db/fingerprintDB`
+
 # References
 - Rodrigues JPGLM, Teixeira JMC, Trellet M and Bonvin AMJJ.
 pdb-tools: a swiss army knife for molecular structures. 

@@ -16,7 +16,7 @@ from collections import Counter
 from src.utils.smiles import SMILES
 from src.filter.apply_blacklist import apply_blacklist_build
 from src.filter.apply_whitelist import apply_whitelist_build
-from src.utils.calculate_geometric_centers import calculate_geometric_centers
+from src.utils.geometric.calculate_geometric_centers import calculate_geometric_centers
 from src.fingerprint.create_fingerprint import create_fingerprint
 import uuid
 from Bio.PDB import PDBParser
