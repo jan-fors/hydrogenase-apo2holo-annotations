@@ -21,10 +21,13 @@
     - [X] svm mc & sum
     - [X] mlp classifier mc & sum
 - [X] refactor 
+- [ ] visualizing output
+    - [ ] visualize the protein in a 3d interactive plot 
+    - [ ] show pockets -> shows all predicted pockets colored by cluster
+    - [ ] for each cluster show the fingerprint radius and create a little table with each cluster, then the probabilites for each cofactor and the winner
 - [ ] perform benchmarking grid search
     - [ ] define parameters
 - [ ] boltz output
-- [ ] visualizing output
 - [ ] check whether smiles are useful for boltz
 
 ## Extra

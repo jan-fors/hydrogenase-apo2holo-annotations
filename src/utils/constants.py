@@ -28,15 +28,16 @@ STRUCTURE_DB=Path("db/structureDB/structureDB")
 FOLDSEEK_OUT_FORMAT="query,target,fident,alnlen,mismatch,gapopen,qstart,qend,tstart,tend,evalue,bits,u,t"
 
 FIDENT_THRESHOLD=0.1
-BITS_THRESHOLD=500
+BITS_THRESHOLD=250
 
 FINGERPRINT_RADIUS = 5
 FINGERPRINT_DB=Path("db/fingerprintDB")
-MODEL=""
+CLASS_LABEL_ORDER = []
+MODEL = ""
 
 TMP="tmp"
 
-SEARCH_TYPE = "svm_sum"   #"absolut", "logreg_sum", "svm_sum", "svm_mc", "logreg_mc", "mlp_mc", "mlp_sum"
+SEARCH_TYPE = "logreg_sum"   #"absolut", "logreg_sum", "svm_sum", "svm_mc", "logreg_mc", "mlp_mc", "mlp_sum"
 
 # logreg params
 MAX_ITER = 1000

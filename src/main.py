@@ -10,7 +10,7 @@ import numpy as np
 from src.parser.parse_t import parse_t
 from src.parser.parse_u import parse_u
 from src.utils.geometric.calculate_geometric_centers import calculate_geometric_centers, calculate_center
-from src.io.plot import plot_with_protein_from_pdb
+from src.io.plot import plot_protein
 from src.filter.apply_blacklist import apply_blacklist
 from src.filter.apply_whitelist import apply_whitelist
 from src.fingerprint.create_fingerprint import create_fingerprint
@@ -411,7 +411,8 @@ def write_outputs(out : Path, structure_path : Path, pockets : dict, prediction_
 
     # create output graphic?
     if plot:
-        print("CREATE PLOT TODO")
+        plot_protein(structure_path = structure_path, pockets = pockets, pred_per_pocket = prediction_per_pocket, output = out)
+        
 
 def main(input_path : Path, out : Path, tmp : Path, boltz : bool, plot: bool, structure_db_path : Path = STRUCTURE_DB, fingerprint_db_path : Path = FINGERPRINT_DB, search_type=SEARCH_TYPE, result_table_path : str = None):
     """

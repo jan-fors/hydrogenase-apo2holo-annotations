@@ -22,7 +22,7 @@ class AbsolutSearchEngine:
             self.table = self.table.set_index(AA_ORDER)
             return self
         else:
-            raise ValueError(f"{model_path} does not exist.")
+            raise ValueError(f"{table_path} does not exist.")
 
     def load_dataframe(self, df : pd.DataFrame):
         """
