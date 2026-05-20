@@ -116,7 +116,7 @@ class FingerprintDB:
             # with open(self.nn_model_path, "wb") as f:
             #     pickle.dump(self.nn_model, f)
 
-    def search(self, F : dict, search_type : Literal["logreg", "absolut", "svm", "mlp", "nn"]) -> list:
+    def search(self, F : dict, search_type : Literal["logreg", "absolut", "svm", "mlp", "nn", "randforest"]) -> list:
         """
         Return: 
             TODO return the same type
@@ -129,6 +129,9 @@ class FingerprintDB:
             return self.svm_model.predict(F)
         elif search_type == "mlp":
             return self.mlp_classifier_model.predict(F)
+        elif search_type == "randforest":
+            pass #TODO
+            #return self.randomforest_classifier_model.predict(F)
         # elif search_type == "nn":
         #     return self._nn_predict(F)
         else:
@@ -262,8 +265,6 @@ class FingerprintDB:
                 
                 F_dict = {i: F[AA_ORDER.index(i)] for i in AA_ORDER}
 
-                
-
                 # create formula
                 atoms = Counter(atom[0].upper() for atom in cofactors[c]["atoms"]
                     if atom[0].upper() in {"FE", "S"})
@@ -274,6 +275,10 @@ class FingerprintDB:
                     formula  = "active_site"
                 else:                
                     formula = self._counter_to_formula(atoms)
+
+                # skip anything thats not 3/4FE3/4S
+                if formula not in ("3FE4S", "4FE3S", "4FE4S"): # TODO open at some point for other fes clusters
+                    continue
 
                 F_dict["formula"] = formula
                 
@@ -293,7 +298,7 @@ class FingerprintDB:
                 F = create_fingerprint(structure_path, blacklisted[c]["geometric_center"])
                 F_dict = {i: F[AA_ORDER.index(i)] for i in AA_ORDER}
                 F_dict["formula"] = "protein"
-                F_dict["smiles"] = "OwO"
+                F_dict["smiles"] = "None"
                 F_dict["id"] = [c]
                 F_dict["res_name"] = [blacklisted[c]["res_name"]]
 

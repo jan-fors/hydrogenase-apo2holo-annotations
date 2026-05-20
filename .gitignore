@@ -5,6 +5,9 @@ example/
 *.csv
 *.tsv
 
+MethodSectionDescription.odt
+
+
 db/
 dat/single_chains/*
 dat/dimer_dataset/*

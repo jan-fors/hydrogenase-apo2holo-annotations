@@ -4,14 +4,14 @@ from pathlib import Path
 VERBOSE=True
 
 COFACTOR_BLACKLIST = [
-    "1C1O", "FE2", "MPD","CL", "IMD", "CSD", "OCS", "PSW", "CA", "SE7", 
-    "UOX","CO3", "SBY", "CL", "H2S", "HOH", "SO4", "MRD", "VK3", "DHI", 
+    "FE2", "MPD", "CL", "IMD", "CSD", "OCS", "PSW", "CA", "SE7", 
+    "UOX","CO3", "SBY", "H2S", "HOH", "SO4", "MRD", "VK3", "DHI", 
     "TRS", "IMD", "CSO", "PEG", "LMT", "PO4", "NA", "LI", "MLA", "CSX", 
-    "OXY", "H2S", "MQ9", "GOL", "KR", "CMO", "MG" # remove as well?
+    "OXY", "MQ9", "GOL", "KR", "CMO", "MG", "FE1" # remove as well?
 ]
 
 COFACTOR_WHITELIST = [
-    "CMO", "SF3", "NFV", "F3S", "NWN", "NI", "3NI", "F4S", "SF4", "NFR", "FE2", "NFU", "NFO", "FNE", "FCO", "FSX", "CYN"
+    "SF3", "NFV", "F3S", "NWN", "NI", "3NI", "F4S", "SF4", "NFU", "NFO", "FNE", "FCO", "FSX"
 ]
 
 AA_ORDER = [

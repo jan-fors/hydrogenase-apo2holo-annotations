@@ -6,5 +6,8 @@ SMILES = {
     "active_site": "C(=O)[Fe](C#N)(C#N)[Ni]",
     "4FE3S": "todo",
     "4FE4S": "todo",
-    "3FE4S": "todo"
+    "3FE4S": "todo",
+    "2FE2S": "todo",
+    "2FE3S": "todo",
+    "2FE4S": "todo"
 }

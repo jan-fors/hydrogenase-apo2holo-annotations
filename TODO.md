@@ -21,18 +21,15 @@
     - [X] svm mc & sum
     - [X] mlp classifier mc & sum
 - [X] refactor 
-- [ ] visualizing output
-    - [ ] visualize the protein in a 3d interactive plot 
-    - [ ] show pockets -> shows all predicted pockets colored by cluster
-    - [ ] for each cluster show the fingerprint radius and create a little table with each cluster, then the probabilites for each cofactor and the winner
-- [ ] perform benchmarking grid search
-    - [ ] define parameters
+- [X] visualizing output
+    - [X] visualize the protein in a 3d interactive plot 
+    - [X] show pockets -> shows all predicted pockets colored by cluster
+    - [X] for each cluster show the fingerprint radius and create a little table with each cluster, then the probabilites for each cofactor and the winner
 - [ ] boltz output
 - [ ] check whether smiles are useful for boltz
 
-## Extra
-- [ ] option to return top x different with scores
-- [ ] no reason to load all models at once - except ensemble prediction?
-
 ## Benchmarking
+- [ ] perform benchmarking grid search
+    - [ ] define parameters
 - [ ] colabfold structures as input for benchmarking? Loss ap02holo(colabfold prediction) against experimental prediction
+- [ ] create testsets
