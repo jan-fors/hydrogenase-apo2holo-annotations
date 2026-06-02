@@ -13,9 +13,9 @@ os.makedirs(output_folder, exist_ok=True)
 subprocess.run([
     "mmseqs", "easy-cluster",
     input_fasta,
-    os.path.join(output_folder, "clusterRes"),
+    os.path.join(output_folder, "clusterRes_095"),
     "tmp",
-    "--min-seq-id", "1.0",
+    "--min-seq-id", "0.95",
     "-c", "0.8",
     "--cov-mode", "1"
 ])

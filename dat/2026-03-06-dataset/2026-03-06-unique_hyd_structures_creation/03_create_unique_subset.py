@@ -9,8 +9,8 @@ import os
 import shutil
 
 input_folder = "2026-03-06-dedup_dimers"
-cluster_file = "clusterRes/clusterRes_cluster.tsv"
-output_folder = "2026-03-06_dedup-dimers_unique"
+cluster_file = "clusterRes/clusterRes_08_cluster.tsv"
+output_folder = "2026-03-06_dedup-dimers_unique_08"
 os.makedirs(output_folder, exist_ok=True)   
 # Read cluster representatives
 representatives = set()

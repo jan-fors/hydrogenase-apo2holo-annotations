@@ -277,7 +277,7 @@ class FingerprintDB:
                     formula = self._counter_to_formula(atoms)
 
                 # skip anything thats not 3/4FE3/4S
-                if formula not in ("3FE4S", "4FE3S", "4FE4S"): # TODO open at some point for other fes clusters
+                if formula not in ("3FE4S", "4FE3S", "4FE4S", "active_site"): # TODO open at some point for other fes clusters
                     continue
 
                 F_dict["formula"] = formula

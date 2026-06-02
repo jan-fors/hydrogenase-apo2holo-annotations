@@ -86,7 +86,7 @@ def bench(data, random_state, test_size, scoring, jobs, k, n_iter):
 
     # initial split
     X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=test_size, random_state=random_state  # , stratify=y
+        X, y, test_size=test_size, random_state=random_state, stratify=y
     )
 
     printl(
