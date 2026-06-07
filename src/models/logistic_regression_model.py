@@ -6,9 +6,13 @@ from sklearn.linear_model import LogisticRegression
 import pickle
 import numpy as np
 from src.utils.constants import (
-    SOLVER,
-    MAX_ITER,
-    CLASS_WEIGHT
+    LOGREG_C,
+    LOGREG_CLASS_WEIGHT,
+    LOGREG_L1_RATIO,
+    LOGREG_MAX_ITER,
+    LOGREG_SOLVER,
+    LOGREG_FIT_INTERCEPT,
+    LOGREG_TOL
 )
 
 class LogisticRegressionModel:
@@ -46,7 +50,15 @@ class LogisticRegressionModel:
     def train(self, X, Y):
         """
         """
-        self.model = LogisticRegression(solver=SOLVER, max_iter=MAX_ITER, class_weight="balanced")
+        self.model = LogisticRegression(
+            C=LOGREG_C,
+            class_weight=LOGREG_CLASS_WEIGHT,
+            fit_intercept=LOGREG_FIT_INTERCEPT,
+            l1_ratio=LOGREG_L1_RATIO,
+            max_iter=LOGREG_MAX_ITER,
+            solver=LOGREG_SOLVER,
+            tol=LOGREG_TOL
+        )
         self.model.fit(X, Y)
     
     def get_model(self):

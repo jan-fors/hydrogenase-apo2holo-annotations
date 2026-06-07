@@ -26,6 +26,7 @@ from src.models.logistic_regression_model import LogisticRegressionModel
 from src.models.absolut_search import AbsolutSearchEngine
 from src.models.svm import SupportVectorMachine
 from src.models.mlp_classifier import CustomMLPClassifier
+from src.models.random_forest import CustomRandomForestClassifier
 
 import warnings
 warnings.simplefilter("ignore", PDBConstructionWarning)
@@ -45,7 +46,7 @@ class FingerprintDB:
         self.logistic_regression_model_path = os.path.join(str(db_directory), "logistic_regression_model.pkl")
         self.mlp_classifier_model_path = os.path.join(str(db_directory), "mlp_classifier_model.pkl")
         self.svm_model_path = os.path.join(str(db_directory), "svm_model.pkl")
-        self.nn_model_path = os.path.join(str(db_directory), "nn_model.pkl")
+        self.random_forest_path = os.path.join(str(db_directory), "randomforest_model.pkl")
 
         # load db
         if os.path.exists(self.db_path):
@@ -71,11 +72,11 @@ class FingerprintDB:
         if os.path.exists(self.svm_model_path):
             self.svm_model = SupportVectorMachine().load(self.svm_model_path)
 
-        # # nn model
-        # if os.path.exists(self.nn_model_path):
-        #     printl(f"Loading model from {self.nn_model_path}")
-        #     with open(self.nn_model_path, "rb") as f:
-        #         self.nn_model = pickle.load(f)
+        # random forest
+        if os.path.exists(self.random_forest_path):
+            printl(f"Loading model from {self.random_forest_path}")
+            with open(self.random_forest_path, "rb") as f:
+                self.nn_model = pickle.load(f)
 
 
     def load(self, db_path : Path = FINGERPRINT_DB, model_path : Path = MODEL):
@@ -111,10 +112,9 @@ class FingerprintDB:
         # mlp
         self.mlp_classifier_model.save(self.mlp_classifier_model_path)
             
-
-            # # nn
-            # with open(self.nn_model_path, "wb") as f:
-            #     pickle.dump(self.nn_model, f)
+        # random forest
+        self.random_forest_model.save(self.random_forest_path)
+        
 
     def search(self, F : dict, search_type : Literal["logreg", "absolut", "svm", "mlp", "nn", "randforest"]) -> list:
         """
@@ -130,8 +130,7 @@ class FingerprintDB:
         elif search_type == "mlp":
             return self.mlp_classifier_model.predict(F)
         elif search_type == "randforest":
-            pass #TODO
-            #return self.randomforest_classifier_model.predict(F)
+            return self.random_forest_model.predict(F)
         # elif search_type == "nn":
         #     return self._nn_predict(F)
         else:
@@ -161,6 +160,10 @@ class FingerprintDB:
         # train mlp classifier
         self.mlp_classifier_model = CustomMLPClassifier()
         self.mlp_classifier_model.train(X_np, Y)
+
+        # train random forest model
+        self.random_forest_model = CustomRandomForestClassifier()
+        self.random_forest_model.train(X_np, Y)
 
 
     def _load_databasefile(self, db_path : Path):

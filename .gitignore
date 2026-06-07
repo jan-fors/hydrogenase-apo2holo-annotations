@@ -26,6 +26,8 @@ benchmarking/
 dat/benchmarking_subsets/
 dat/2026-03-dedup_dimers/*
 
+/boltz_output/*
+
 
 tmp/
 out/

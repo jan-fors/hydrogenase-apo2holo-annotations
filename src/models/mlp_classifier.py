@@ -2,10 +2,20 @@ from sklearn.neural_network import MLPClassifier
 import os
 import numpy as np
 from src.utils.constants import (
+    MLP_ACTIVATION,
     MLP_SOLVER,
     MLP_ALPHA,
     MLP_MAX_ITER,
-    MLP_HIDDEN_LAYERS
+    MLP_BATCH_SIZE,
+    MLP_BETA_1,
+    MLP_BETA_2,
+    MLP_EARLY_STOPPING,
+    MLP_HIDDEN_LAYERS,
+    MLP_LEARNING_RATE,
+    MLP_LEARNING_RATE_INIT,
+    MLP_MOMENTUM,
+    MLP_TOL,
+    MLP_VALIDATION_FRACTION
 )
 
 from pathlib import Path
@@ -48,8 +58,22 @@ class CustomMLPClassifier:
     def train(self, X, Y):
         """
         """
-        self.model = MLPClassifier(solver=MLP_SOLVER, alpha=MLP_ALPHA,
-                    hidden_layer_sizes=MLP_HIDDEN_LAYERS, random_state=1, max_iter=MLP_MAX_ITER)
+        self.model = MLPClassifier(
+                activation=MLP_ACTIVATION,
+                alpha=MLP_ALPHA,
+                batch_size=MLP_BATCH_SIZE,
+                beta_1=MLP_BETA_1,
+                beta_2=MLP_BETA_2,
+                early_stopping=MLP_EARLY_STOPPING,
+                hidden_layer_sizes=MLP_HIDDEN_LAYERS,
+                learning_rate=MLP_LEARNING_RATE,
+                learning_rate_init=MLP_LEARNING_RATE_INIT,
+                max_iter=MLP_MAX_ITER,
+                momentum=MLP_MOMENTUM,
+                solver=MLP_SOLVER,
+                tol=MLP_TOL,
+                validation_fraction=MLP_VALIDATION_FRACTION
+            )
         self.model.fit(X, Y)
     
     def get_model(self):

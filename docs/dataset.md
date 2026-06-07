@@ -70,33 +70,3 @@ For the cofactors except 4Fe4S every structure was taken. For 4Fe4S the structur
 All the structures were clustered using `foldseek easy-multimercluster` with the following params: `-c 0.8 --cov-mode 0 --min-seq-id 1`.
 The resulting dataset `2025-05-08-train-data` contains 543 distinct structures.
 
-## Intersection of both datasets
-=== IN BOTH (intersection) ===
-3usc.pdb
-5a4f.pdb
-5a4i.pdb
-5adu.pdb
-5jrd.pdb
-5lry.pdb
-6g7m.pdb
-7nem.pdb
-7utd.pdb
-7uus.pdb
-9nez.pdb
-9r52.pdb
-9r6z.pdb
-
-=== IN A BUT NOT IN B ===
-3ayz.pdb
-4ci0.pdb
-4omf.pdb
-5aa5.pdb
-5lmm.pdb
-5odq.pdb
-5xvb.pdb
-5xvc.pdb
-6ehq.pdb
-6gam.pdb
-6qgt.pdb
-6qii.pdb
-9erb.pdb

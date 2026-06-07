@@ -1,7 +1,7 @@
 # TODOs
 ## General
-- [ ] finalize output
-- [ ] boltz output
+- [X] finalize output
+- [X] boltz output
 - [ ] check whether smiles are useful for boltz
 
 ## Benchmarking
