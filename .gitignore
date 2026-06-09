@@ -7,9 +7,9 @@ example/
 *.zip
 *.fasta
 *.pdb
-
+*.log
 MethodSectionDescription.odt
-
+BENCH.md
 
 db/
 dat/single_chains/*
@@ -27,6 +27,10 @@ dat/benchmarking_subsets/
 dat/2026-03-dedup_dimers/*
 
 /boltz_output/*
+
+/complete_benchmark/*
+/benchmark_model_results/*
+
 
 
 tmp/

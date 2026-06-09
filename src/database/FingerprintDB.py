@@ -7,8 +7,6 @@ from src.io.printl import printl
 from src.utils.constants import (
     FINGERPRINT_DB,
     MODEL,
-    MAX_ITER,
-    SOLVER,
     AA_ORDER
 )
 from sklearn.linear_model import LogisticRegression

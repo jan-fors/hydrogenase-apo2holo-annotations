@@ -67,7 +67,7 @@ def _search_test_files_against_train_data(test_dir : Path, train_data : Path, mi
 
     return hits
 
-def benchmark(test_data : Path, train_data : Path, k : int, benchmark_dir : Path, min_seq_id : float, prediction_only : bool):
+def benchmark(test_data : Path, train_data : Path, k : int, benchmark_dir : Path, min_seq_id : float, prediction_only : bool, result_dir : Path = Path('out')):
     """
 
     TODO prediction_only function
@@ -88,6 +88,8 @@ def benchmark(test_data : Path, train_data : Path, k : int, benchmark_dir : Path
         tmp_folder = benchmark_dir / Path('tmp')
 
         for subset_folder in os.listdir(benchmark_dir):
+            if subset_folder == "tmp":
+                continue
             subset_dir = benchmark_dir / Path(str(subset_folder))
             test_dir = subset_dir / Path('test')
 
@@ -98,7 +100,7 @@ def benchmark(test_data : Path, train_data : Path, k : int, benchmark_dir : Path
             structure_db = structure_db / Path('structureDB')
             fingerprint_db = db_dir / Path('fingerprintDB')
 
-            pred_dir = subset_dir / Path('out')
+            pred_dir = subset_dir / result_dir
            
             for test_structure in os.listdir(test_dir):
                 try:
@@ -185,8 +187,9 @@ def benchmark(test_data : Path, train_data : Path, k : int, benchmark_dir : Path
                         plot=True, 
                         structure_db_path=structure_db,
                         fingerprint_db_path=fingerprint_db)
-                except FileNotFoundError as e:
+                except (FileNotFoundError, subprocess.CalledProcessError) as e:
                     print(e)
+                
         
 
 
@@ -199,7 +202,8 @@ if __name__ == "__main__":
     parser.add_argument("--benchmark_dir", type=Path, default="benchmark_dir", help="directory where the benchmarking subsets are created etc.")
     parser.add_argument("--min_seq_id", type=float, default=0.95, help="Minimum Sequence Identity for the foldseek run")
     parser.add_argument("--prediction_only", action="store_true")
+    parser.add_argument("--result_dir_name", type=Path, default=Path('out'))
 
     args = parser.parse_args()
 
-    benchmark(args.test_data, args.train_data, args.k, args.benchmark_dir, args.min_seq_id, args.prediction_only)
+    benchmark(args.test_data, args.train_data, args.k, args.benchmark_dir, args.min_seq_id, args.prediction_only, args.result_dir_name)
