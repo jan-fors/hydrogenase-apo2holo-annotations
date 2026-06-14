@@ -14,7 +14,7 @@ from src.utils.constants import (
 from Bio.PDB import PDBParser, NeighborSearch
 import numpy as np
 
-def create_fingerprint(structure_path : Path, point : tuple) -> np.array:
+def create_fingerprint(structure_path : Path, point : tuple, fingerprint_radius : float = FINGERPRINT_RADIUS) -> np.array:
     """"""
     parser = PDBParser()
     structure = parser.get_structure("prot", structure_path)
@@ -22,7 +22,7 @@ def create_fingerprint(structure_path : Path, point : tuple) -> np.array:
     atoms = list(structure.get_atoms())
     ns = NeighborSearch(atoms)
 
-    near_atoms = ns.search(point, FINGERPRINT_RADIUS)  
+    near_atoms = ns.search(point, fingerprint_radius)  
 
     residues = {a.get_parent() for a in near_atoms}
 

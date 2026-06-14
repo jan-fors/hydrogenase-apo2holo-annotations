@@ -55,12 +55,12 @@ def get_param_distributions():
     "clf__learning_rate_init":  loguniform(1e-4, 1e-1),
     "clf__max_iter":            randint(200, 1000),
     "clf__tol":                 loguniform(1e-5, 1e-2),
-    "clf__early_stopping":      [True, False],
+    "clf__early_stopping":      [False],
     "clf__validation_fraction": uniform(0.1, 0.2),
     "clf__batch_size":          [32, 64, 128, 256, "auto"],
     "clf__momentum":            uniform(0.5, 0.45),
     "clf__beta_1":              uniform(0.85, 0.14),
-    "clf__beta_2":              uniform(0.9, 0.099),
+    "clf__beta_2":              uniform(0.9, 0.099)
     }
     return param_distributions_mlp
 

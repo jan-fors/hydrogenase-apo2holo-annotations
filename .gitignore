@@ -10,6 +10,7 @@ example/
 *.log
 MethodSectionDescription.odt
 BENCH.md
+cs_tmp
 
 db/
 dat/single_chains/*

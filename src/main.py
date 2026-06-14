@@ -145,12 +145,15 @@ def _arrange_cofactors_into_clusters(cofactor_sites : List[tuple[float, float, f
 
     return cluster
 
-def _create_fingerprints(input_path : Path, coordinates : List[tuple[float, float, float]]):
+def _create_fingerprints(input_path : Path, coordinates : List[tuple[float, float, float]], f_radius : float = None):
     """"""
     fingerprints = []
     for point in tqdm(coordinates, disable=not VERBOSE):
         # create fingerprint
-        F = create_fingerprint(input_path, point)
+        if f_radius != None:
+            F = create_fingerprint(input_path, point, f_radius)
+        else:
+            F = create_fingerprint(input_path, point)
         fingerprints.append(F)
 
     return fingerprints
@@ -268,12 +271,13 @@ def identify_possible_cofactor_pockets(structure_db_path : Path, input_path : Pa
 
     return clusters
 
-def predict_cofactors_by_pockets(fingerprint_db_path : Path, pockets : dict, search_type : str, input_path : Path):
+def predict_cofactors_by_pockets(fingerprint_db_path : Path, pockets : dict, search_type : str, input_path : Path, model : Path = None, f_radius : float = None):
     """
     """
     # Initialize fingerprintDB
     printl("Initializing fingerprint database...")
     fingerprintDB = FingerprintDB(fingerprint_db_path)
+
     
     # search each pocket against 
     printl("Searching each pocket point against the fingerprint database...")
@@ -281,14 +285,14 @@ def predict_cofactors_by_pockets(fingerprint_db_path : Path, pockets : dict, sea
     pocket_hits = {}
 
     for key in pockets.keys():
-        
+
         if search_type == "absolut":
             printl(f"Creating fingerprints for pocket {key}...")
-            fingerprints = _create_fingerprints(input_path=input_path, coordinates=pockets[key])
+            fingerprints = _create_fingerprints(input_path=input_path, coordinates=pockets[key], f_radius=f_radius)
 
             # search
             printl(f"Searching pocket {key} against fingerprint database...")
-            hits = fingerprintDB.search(F=fingerprints, search_type=search_type)
+            hits = fingerprintDB.search(F=fingerprints, search_type=search_type, model=model)
 
             # count
             pocket_hits[key] = Counter()
@@ -296,26 +300,40 @@ def predict_cofactors_by_pockets(fingerprint_db_path : Path, pockets : dict, sea
 
             pocket_hits[key] = _counter_to_probs(pocket_hits[key])
 
-        elif search_type == "logreg_sum" or search_type == "mlp_sum" or search_type == "svm_sum":
+        elif search_type == "logreg_sum" or search_type == "mlp_sum" or search_type == "svm_sum" or search_type == "randforest_sum" or search_type == "sum":
             printl(f"Creating fingerprints for pocket {key}...")
-            fingerprints = _create_fingerprints(input_path=input_path, coordinates=pockets[key])
+            fingerprints = _create_fingerprints(input_path=input_path, coordinates=pockets[key], f_radius=f_radius)
 
             # search
             printl(f"Searching pocket {key} against fingerprint database...")
-            hits = fingerprintDB.search(F=fingerprints, search_type=search_type.split("_")[0])
+
+            if "_" in search_type:
+                search_type_command = search_type.split("_")[0]
+            else:
+                search_type_command = search_type
+            hits = fingerprintDB.search(F=fingerprints, search_type=search_type_command, model=model)
 
             # count
             pocket_hits[key] = _aggregate_probs(hits)
 
-        elif search_type == "logreg_mc" or search_type == "mlp_mc" or search_type == "svm_mc":
+        elif search_type == "logreg_mc" or search_type == "mlp_mc" or search_type == "svm_mc" or search_type == "randforest_mc" or search_type == "mc":
             # create center
             M = np.array(pockets[key])
             center = calculate_center(M)
             printl(f"Creating fingerprint for pocket {key}...")
-            F = [create_fingerprint(input_path, center)]
+            if f_radius != None:
+                F = [create_fingerprint(input_path, center, f_radius)]
+            else:
+                F = [create_fingerprint(input_path, center)]
+            
             # search
             printl(f"Searching pocket {key} against fingerprint database...")
-            hits = fingerprintDB.search(F=F, search_type=search_type.split("_")[0])
+
+            if "_" in search_type:
+                search_type_command = search_type.split("_")[0]
+            else:
+                search_type_command = search_type
+            hits = fingerprintDB.search(F=F, search_type=search_type_command, model=model)
 
             pocket_hits[key] = _counter_to_probs(Counter(hits[0]))
 
@@ -414,15 +432,15 @@ def write_outputs(out : Path, structure_path : Path, pockets : dict, prediction_
         plot_protein(structure_path = structure_path, pockets = pockets, pred_per_pocket = prediction_per_pocket, output = out)
         
 
-def main(input_path : Path, out : Path, tmp : Path, boltz : bool, plot: bool, structure_db_path : Path = STRUCTURE_DB, fingerprint_db_path : Path = FINGERPRINT_DB, search_type=SEARCH_TYPE, result_table_path : str = None):
+def main(input_path : Path, out : Path, tmp : Path, boltz : bool, plot: bool, structure_db_path : Path = STRUCTURE_DB, fingerprint_db_path : Path = FINGERPRINT_DB, search_type=SEARCH_TYPE, model : Path = None, f_radius : float = None):
     """
 
     """
     # step 1: identify possible cofactor pockets
     pockets = identify_possible_cofactor_pockets(structure_db_path=structure_db_path, input_path=input_path, out=out)
-    
+        
     # step 2: predict each pocket
-    pred_per_pocket = predict_cofactors_by_pockets(fingerprint_db_path=fingerprint_db_path, pockets=pockets, search_type=search_type, input_path=input_path)
+    pred_per_pocket = predict_cofactors_by_pockets(fingerprint_db_path=fingerprint_db_path, pockets=pockets, search_type=search_type, input_path=input_path, model=model, f_radius=f_radius)
 
     # step 3: choose best hit per pocket
     best_hits_per_pocket = choose_best_hit_per_pocket(prediction_per_pocket=pred_per_pocket)

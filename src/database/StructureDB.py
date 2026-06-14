@@ -47,13 +47,13 @@ class StructureDB:
             "foldseek",
             "easy-search",
             str(query_path),
-            self.structure_db_path,
+            str(self.structure_db_path),
             str(output_path),
             str(TMP),
             "--format-output",
             FOLDSEEK_OUT_FORMAT,
         ]
-
+       
         result = subprocess.run(
             cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=True
         )

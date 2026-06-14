@@ -67,7 +67,7 @@ def _search_test_files_against_train_data(test_dir : Path, train_data : Path, mi
 
     return hits
 
-def benchmark(test_data : Path, train_data : Path, k : int, benchmark_dir : Path, min_seq_id : float, prediction_only : bool, result_dir : Path = Path('out')):
+def benchmark(test_data : Path, train_data : Path, k : int, benchmark_dir : Path, min_seq_id : float, prediction_only : bool, result_dir : Path = Path('out'), model_training_only : bool = False, model : Path = None, search_type : str = None):
     """
 
     TODO prediction_only function
@@ -114,9 +114,13 @@ def benchmark(test_data : Path, train_data : Path, k : int, benchmark_dir : Path
                         boltz=False,
                         plot=True, 
                         structure_db_path=structure_db,
-                        fingerprint_db_path=fingerprint_db)
+                        fingerprint_db_path=fingerprint_db,
+                        model=model,
+                        search_type=search_type)
                 except FileNotFoundError as e:
                     print(e)
+    elif model_training_only:
+        pass
     else:
         # create benchmark dir
         os.makedirs(benchmark_dir, exist_ok=True)
@@ -202,8 +206,12 @@ if __name__ == "__main__":
     parser.add_argument("--benchmark_dir", type=Path, default="benchmark_dir", help="directory where the benchmarking subsets are created etc.")
     parser.add_argument("--min_seq_id", type=float, default=0.95, help="Minimum Sequence Identity for the foldseek run")
     parser.add_argument("--prediction_only", action="store_true")
+    parser.add_argument("--model", type=Path, help="Model Path", default=None)
+    parser.add_argument("--search_type", type=str, default=None)
+    parser.add_argument("--model_training_only", type=str, help="Name of the model set") # just create new models no new databases -> save models under different name
     parser.add_argument("--result_dir_name", type=Path, default=Path('out'))
+
 
     args = parser.parse_args()
 
-    benchmark(args.test_data, args.train_data, args.k, args.benchmark_dir, args.min_seq_id, args.prediction_only, args.result_dir_name)
+    benchmark(args.test_data, args.train_data, args.k, args.benchmark_dir, args.min_seq_id, args.prediction_only, args.result_dir_name, args.model_training_only, args.model)

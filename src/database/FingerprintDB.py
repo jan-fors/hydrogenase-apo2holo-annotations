@@ -7,7 +7,8 @@ from src.io.printl import printl
 from src.utils.constants import (
     FINGERPRINT_DB,
     MODEL,
-    AA_ORDER
+    AA_ORDER,
+    FINGERPRINT_RADIUS
 )
 from sklearn.linear_model import LogisticRegression
 from collections import Counter
@@ -113,56 +114,81 @@ class FingerprintDB:
         # random forest
         self.random_forest_model.save(self.random_forest_path)
         
+    def save_fingerprint_tsv(self, path : Path):
+        """"""
+        self.db.to_csv(path, sep="\t", index = None)
 
-    def search(self, F : dict, search_type : Literal["logreg", "absolut", "svm", "mlp", "nn", "randforest"]) -> list:
+    def search(self, F : dict, search_type : Literal["logreg", "absolut", "svm", "mlp", "nn", "randforest", None, "sum", "mc"], model : Path = None) -> list:
         """
         Return: 
             TODO return the same type
         """
-        if search_type == "logreg":
-            return self.logistic_regression_model.predict(F)
-        elif search_type == "absolut":
-            return self.absolut_search_engine.predict(F)
-        elif search_type == "svm":
-            return self.svm_model.predict(F)
-        elif search_type == "mlp":
-            return self.mlp_classifier_model.predict(F)
-        elif search_type == "randforest":
-            return self.random_forest_model.predict(F)
-        # elif search_type == "nn":
-        #     return self._nn_predict(F)
-        else:
-            printl("Use valid earch option. [logreg, absolut]")
-            return []
+        if search_type == "sum" or search_type == "mc" or search_type == None:
+            ################ TODO REMOVE AFTER BENCHMARKING ################
+            # load model
+            if os.path.exists(model):
+                printl(f"Loading model from {model}")
+                with open(model, "rb") as f:
+                    smodel = pickle.load(f)
+            else:
+                raise ValueError(f"{model} does not exist.")
+            # predict
+            proba = smodel.predict_proba(F)
 
-    def build_db(self, input_directory : Path):
+            class_names = smodel.classes_
+
+            output = [
+                {cls: p for cls, p in zip(class_names, row)}
+                for row in proba
+            ]
+            return output
+            ################ TODO REMOVE AFTER BENCHMARKING ################
+        else:
+            if search_type == "logreg":
+                return self.logistic_regression_model.predict(F)
+            elif search_type == "absolut":
+                return self.absolut_search_engine.predict(F)
+            elif search_type == "svm":
+                return self.svm_model.predict(F)
+            elif search_type == "mlp":
+                return self.mlp_classifier_model.predict(F)
+            elif search_type == "randforest":
+                return self.random_forest_model.predict(F)
+            # elif search_type == "nn":
+            #     return self._nn_predict(F)
+            else:
+                printl("Use valid earch option. [logreg, absolut]")
+                return []
+        
+    def build_db(self, input_directory : Path, f_radius : float = FINGERPRINT_RADIUS, train_models : bool = True):
         """
         """
         # build db table
-        self.db = self._build_db_table(input_directory)
+        self.db = self._build_db_table(input_directory, f_radius)
         self.absolut_search_engine = AbsolutSearchEngine().load_dataframe(self.db_path)
 
-        X = self.db.drop(columns=['formula', 'id', 'smiles', 'res_name'])
-        X_np = X.to_numpy()
 
-        Y = self.db["formula"]
+        if train_models:
 
-        # train_log_reg
-        self.logistic_regression_model = LogisticRegressionModel()
-        self.logistic_regression_model.train(X_np, Y)
+            X = self.db.drop(columns=['formula', 'id', 'smiles', 'res_name'])
+            X_np = X.to_numpy()
 
-        # train svm
-        self.svm_model = SupportVectorMachine()
-        self.svm_model.train(X_np, Y)
+            Y = self.db["formula"]
+            # train_log_reg
+            self.logistic_regression_model = LogisticRegressionModel()
+            self.logistic_regression_model.train(X_np, Y)
 
-        # train mlp classifier
-        self.mlp_classifier_model = CustomMLPClassifier()
-        self.mlp_classifier_model.train(X_np, Y)
+            # train svm
+            self.svm_model = SupportVectorMachine()
+            self.svm_model.train(X_np, Y)
 
-        # train random forest model
-        self.random_forest_model = CustomRandomForestClassifier()
-        self.random_forest_model.train(X_np, Y)
+            # train mlp classifier
+            self.mlp_classifier_model = CustomMLPClassifier()
+            self.mlp_classifier_model.train(X_np, Y)
 
+            # train random forest model
+            self.random_forest_model = CustomRandomForestClassifier()
+            self.random_forest_model.train(X_np, Y)
 
     def _load_databasefile(self, db_path : Path):
         """
@@ -205,7 +231,7 @@ class FingerprintDB:
 
         return dict(results)
     
-    def _build_db_table(self, input_directory : Path):
+    def _build_db_table(self, input_directory : Path, f_radius : float):
         """
         """
         db_df = pd.DataFrame({
@@ -262,7 +288,7 @@ class FingerprintDB:
             # for each cofactor left
             for c in cofactors:
                 # create fingerprint
-                F = create_fingerprint(structure_path, cofactors[c]["geometric_center"])
+                F = create_fingerprint(structure_path, cofactors[c]["geometric_center"], f_radius)
                 
                 F_dict = {i: F[AA_ORDER.index(i)] for i in AA_ORDER}
 
