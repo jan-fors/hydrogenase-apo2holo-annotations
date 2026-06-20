@@ -20,34 +20,58 @@ warnings.filterwarnings("ignore", module="sklearn")
 
 from sklearn.neural_network import MLPClassifier
 from sklearn.ensemble import RandomForestClassifier
-
 from sklearn.svm import SVC
+from sklearn.linear_model import LogisticRegression
 
 RANDOM_STATE = 161
-MODEL = SVC(random_state=RANDOM_STATE, probability=True) # insert model
+# CAUTION: if svm is used include: probablity = True
+MODEL = MLPClassifier(random_state=RANDOM_STATE) # insert model
 PARAMS = {
     # fill with model specific params. Example: 
     # "clf__solver": "adam"
+"clf__hidden_layer_sizes":(512, 256, 128),
+"clf__activation":"logistic",
+"clf__solver":"adam",
+"clf__alpha":2.7019570942233988e-05,
+"clf__batch_size":"auto",
+"clf__learning_rate":"constant",
+"clf__learning_rate_init":0.0002173312338134643,
+"clf__power_t":0.5,
+"clf__max_iter":608,
+"clf__shuffle":True,
+"clf__random_state":161,
+"clf__tol":0.0002159629929642013,
+"clf__verbose":False,
+"clf__warm_start":False,
+"clf__momentum":0.5502222483731583,
+"clf__nesterovs_momentum":True,
+"clf__early_stopping":False,
+"clf__validation_fraction":0.1374337930471308,
+"clf__beta_1":0.959311567485037,
+"clf__beta_2":0.9590358482707659,
+"clf__epsilon":1e-08,
+"clf__n_iter_no_change":10,
+"clf__max_fun":15000,
 }
 
 PARAM_DISTRIBUTION = {
-    # "clf__hidden_layer_sizes":  [(64,), (128,), (256,),
-    #                              (64, 32), (128, 64), (256, 128),
-    #                              (128, 64, 32), (256, 128, 64),
-    #                              (512, 256, 128)],
-    # "clf__activation":          ["relu", "relu", "relu", "tanh", "logistic"],
-    # "clf__solver":              ["adam", "adam", "adam", "sgd"],
-    # "clf__alpha":               loguniform(1e-5, 1e-1),
-    # "clf__learning_rate":       ["constant", "adaptive", "invscaling"],
-    # "clf__learning_rate_init":  loguniform(1e-4, 1e-1),
-    # "clf__max_iter":            randint(200, 1000),
-    # "clf__tol":                 loguniform(1e-5, 1e-2),
-    # "clf__early_stopping":      [False],
-    # "clf__validation_fraction": uniform(0.1, 0.2),
-    # "clf__batch_size":          [32, 64, 128, 256, "auto"],
-    # "clf__momentum":            uniform(0.5, 0.45),
-    # "clf__beta_1":              uniform(0.85, 0.14),
-    # "clf__beta_2":              uniform(0.9, 0.099)
+    "clf__hidden_layer_sizes":  [(64,), (128,), (256,),
+                                 (64, 32), (128, 64), (256, 128),
+                                 (128, 64, 32), (256, 128, 64),
+                                 (512, 256, 128)],
+    "clf__activation":          ["relu", "relu", "relu", "tanh", "logistic"],
+    "clf__solver":              ["adam", "adam", "adam", "sgd"],
+    "clf__alpha":               loguniform(1e-5, 1e-1),
+    "clf__learning_rate":       ["constant", "adaptive", "invscaling"],
+    "clf__learning_rate_init":  loguniform(1e-4, 1e-1),
+    "clf__max_iter":            randint(200, 1000),
+    "clf__tol":                 loguniform(1e-5, 1e-2),
+    "clf__early_stopping":      [False],
+    "clf__validation_fraction": uniform(0.1, 0.2),
+    "clf__batch_size":          [32, 64, 128, 256, "auto"],
+    "clf__momentum":            uniform(0.5, 0.45),
+    "clf__beta_1":              uniform(0.85, 0.14),
+    "clf__beta_2":              uniform(0.9, 0.099)
     # "clf__n_estimators": randint(100, 1000),
     #     "clf__max_depth": [None, 5, 10, 20, 30, 50],
     #     "clf__min_samples_split": randint(2, 20),
@@ -56,14 +80,20 @@ PARAM_DISTRIBUTION = {
     #     "clf__class_weight": [None, "balanced"],
     #     "clf__bootstrap": [True, False],
     #   #  "clf__max_samples": uniform(0.5, 0.5),
-      "clf__C":               loguniform(1e-3, 1e4),
-    "clf__kernel":          ["rbf", "rbf", "rbf", "linear", "poly", "sigmoid"],
-    "clf__gamma":           ["scale", "auto"] + list(loguniform(1e-4, 1e1).rvs(20)),
-    "clf__degree":          randint(2, 6),
-    "clf__coef0":           uniform(0, 10),
-    "clf__class_weight":    [None, "balanced"],
-    "clf__tol":             loguniform(1e-5, 1e-2),
-    "clf__shrinking":       [True, False],
+    #   "clf__C":               loguniform(1e-3, 1e4),
+    # "clf__kernel":          ["rbf", "rbf", "rbf", "linear", "poly", "sigmoid"],
+    # "clf__gamma":           ["scale", "auto"] + list(loguniform(1e-4, 1e1).rvs(20)),
+    # "clf__degree":          randint(2, 6),
+    # "clf__coef0":           uniform(0, 10),
+    # "clf__class_weight":    [None, "balanced"],
+    # "clf__tol":             loguniform(1e-5, 1e-2),
+    # "clf__shrinking":       [True, False],"clf__C":               loguniform(1e-4, 1e4),
+    # "clf__l1_ratio":        uniform(0, 1),
+    # "clf__solver":          ["saga"],
+    # "clf__max_iter":        randint(200, 2000),
+    # "clf__fit_intercept":   [True, False],
+    # "clf__class_weight":    [None, "balanced"],
+    # "clf__tol":             loguniform(1e-6, 1e-2),
 }
 
 def get_pipeline():
@@ -119,7 +149,14 @@ def train_model(directory : Path, finerprinttsv_name : str, model_name : str, mo
         
         db = pd.read_csv(fingerprint_tsv_path, sep="\t")
         # prep X and y
-        X = db.drop(columns=['formula', 'id', 'smiles', 'res_name'])
+        try:
+            X = db.drop(columns=['formula', 'id', 'smiles', 'res_name'])
+        except Exception as e:
+            print(e)
+            try:
+                 X = db.drop(columns=['formula'])
+            except Exception as e:
+                print(e)
         X_np = X.to_numpy()
 
         Y = db["formula"]

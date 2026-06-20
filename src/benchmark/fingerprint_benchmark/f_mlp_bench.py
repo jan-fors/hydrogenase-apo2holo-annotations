@@ -70,9 +70,9 @@ def prepare_data(data: Path, test_size: float, random_state: int):
     df = pd.read_csv(data, sep="\t")
     printl("Read data...")
 
-    df.drop("id", axis=1, inplace=True)
-    df.drop("res_name", axis=1, inplace=True)
-    df.drop("smiles", axis=1, inplace=True)
+    # df.drop("id", axis=1, inplace=True)
+    # df.drop("res_name", axis=1, inplace=True)
+    # df.drop("smiles", axis=1, inplace=True)
     df = df[~df["formula"].isin(COFACTOR_BLACKLIST)].copy()
     df.reset_index(drop=True, inplace=True)
 

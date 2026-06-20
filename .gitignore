@@ -11,6 +11,8 @@ example/
 MethodSectionDescription.odt
 BENCH.md
 cs_tmp
+logs/
+scripts/
 
 db/
 dat/single_chains/*

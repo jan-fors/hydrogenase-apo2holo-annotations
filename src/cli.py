@@ -62,7 +62,6 @@ if __name__ == "__main__":
     parser.add_argument("--result-table", default=None, help="Path to a result table for batch runs.")
     parser.add_argument("--structure-db-path", default=STRUCTURE_DB, help="Path to the structure database")
     parser.add_argument("--fingerprint-db-path", default=FINGERPRINT_DB, help="Path to the fingerprint database")
-    #parser.add_argument("--search-type", default=SEARCH_TYPE) TODO change back after benchmarking
     parser.add_argument("--search_type", type=str, default=None)
     parser.add_argument("--model", type=Path, default=None)
     parser.add_argument("--f_radius", type=float, default=None)

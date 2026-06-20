@@ -76,6 +76,11 @@ def _structure_db_search(structureDB : StructureDB, chain_paths : List[Path], ou
     for cp in tqdm(chain_paths, disable=not VERBOSE):
         fd_res.append(structureDB.search(cp, out))
 
+    for chain in chain_paths:
+        # remove chain to save memory
+        os.remove(chain)
+        
+
     # parse the results
     cofactor_sites = []
     names = [] # ONLY relevant if plot is created
@@ -118,6 +123,9 @@ def _structure_db_search(structureDB : StructureDB, chain_paths : List[Path], ou
             coords = list(geometric_centers.values())
             names.extend(list(geometric_centers.keys()))
             cofactor_sites.extend(coords)
+
+        # remove other results
+        os.remove(fd_r)
 
     # plot cofactor sites
      # fig = plot_with_protein_from_pdb(
@@ -336,6 +344,8 @@ def predict_cofactors_by_pockets(fingerprint_db_path : Path, pockets : dict, sea
             hits = fingerprintDB.search(F=F, search_type=search_type_command, model=model)
 
             pocket_hits[key] = _counter_to_probs(Counter(hits[0]))
+
+
 
         print_probabilities(pocket_hits[key])
 
