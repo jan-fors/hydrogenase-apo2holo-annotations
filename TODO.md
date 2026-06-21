@@ -23,22 +23,11 @@
     - [ ] ignore all unimportant aminoacids? -> just CYS, HIS, etc.. 
     - [ ] when creating the training set -> smaller min-seq-id threshold
 
-- [X] run best models on larger dataset
-    === TOP ===
-modelname f_radii search_type model_type db_R  model_number  accuracy  coverage
-A     6.5          mc        rfc R6.0             3  0.933333       1.0
-B     6.0          mc        mlp R6.0            19  0.933333       1.0
-C     6.5          mc        rfc R6.0            11  0.933333       1.0
-D     6.5         sum        lrc R6.0             2  0.933333       1.0
-E     6.5          mc        rfc R6.0            10  0.933333       1.0
+### IMPORTANT
+- [ ] test with apostructures from experimental files
+- [ ] remove GLY from search?
+- [ ] increase background class size? -> make background class stronger
+    - [ ] background class too different?
+    - [ ] create artificial background class samples?
 
-F     6.5         sum        mlp R6.0             8  0.900000       1.0
-G     6.0         sum        mlp R6.0            12  0.900000       1.0
-H     6.5          mc        svm R6.5             9  0.900000       1.0
-
-I     6.0          mc        rfc R6.0             7       0.9       1.0        1.0
-J     6.5         sum        mlp R6.0             8       0.9       0.9        1.0
-K     5.0          mc        mlp R5.0             7       0.8       0.8        1.0
-
-## IMPORTANT
-- [ ] **when** are **which cofactors** removed or flagged?
+- [ ] implement absolut search
