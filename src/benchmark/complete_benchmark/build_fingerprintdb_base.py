@@ -24,7 +24,7 @@ def build_fingerprint_base(directory : Path, f_radius : float):
 
         out_file = fingerprint_db_path / Path("db_R" + str(f_radius) + ".tsv")
 
-        fDB.build_db(train_dir, f_radius, False)
+        fDB.build_db(train_dir, f_radius, False, True)
         fDB.save_fingerprint_tsv(out_file)
 
 

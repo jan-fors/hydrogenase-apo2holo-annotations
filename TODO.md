@@ -17,17 +17,17 @@
         - [ ] TEST: oversample 3Fe4S cluster or undersample 4Fe4S
             1. deduplicate by fingeprints
             2. oversample using `random_oversampler.py`
-        - [ ] TEST: generally less items
+        - [ ] TEST: generally less items *overfit*?
     - [ ] different training
     - [ ] different models for FeS cluster and acitve site
-    - [ ] ignore all unimportant aminoacids? -> just CYS, HIS, etc.. 
-    - [ ] when creating the training set -> smaller min-seq-id threshold
+    - [X] ignore all unimportant aminoacids? -> just CYS, HIS, etc.. -> *no positive effect* 
+    - [X] when creating the training set -> smaller min-seq-id threshold
 
 ### IMPORTANT
 - [ ] test with apostructures from experimental files
-- [ ] remove GLY from search?
+- [X] remove GLY from search? -> *no positive effect*
 - [ ] increase background class size? -> make background class stronger
     - [ ] background class too different?
-    - [ ] create artificial background class samples?
+    - [X] create artificial background class samples?
 
 - [ ] implement absolut search

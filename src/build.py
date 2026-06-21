@@ -39,7 +39,7 @@ def build(input_structure_dir : Path, output_structure_dir : Path, structure_db_
     """
     """
     # build structure db
-    build_structure_db(input_structure_dir, output_structure_dir, structure_db_path)
+    #build_structure_db(input_structure_dir, output_structure_dir, structure_db_path)
 
     # build fingerprint db
     build_fingerprint_db(input_structure_dir, fingerprint_db_path)
@@ -57,9 +57,9 @@ def build_fingerprint_db(raw_input_dir : Path, fingerprint_db_path : Path):
     """
     fingerprintDB = FingerprintDB(fingerprint_db_path)
 
-    fingerprintDB.build_db(raw_input_dir)
+    fingerprintDB.build_db(input_directory=raw_input_dir, extend_background_samples=True, f_radius=6.0, train_models=False)
 
-    fingerprintDB.save()
+    fingerprintDB.save(save_models = False)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
