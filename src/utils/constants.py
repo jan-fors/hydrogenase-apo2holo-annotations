@@ -24,11 +24,14 @@ STRUCTURE_DIR=Path("db/single_chains")#"dat/single_chains"#2026-03-06-raw_struct
 
 NN_CLUSTERING_RADIUS = 4.0
 
+AMOUNT_ARTIFICAL_SAMPLES = 5
+MIN_DIST_ARTIFICAL_SAMPLES = 6.0
+
 STRUCTURE_DB=Path("db/structureDB/structureDB")
 FOLDSEEK_OUT_FORMAT="query,target,fident,alnlen,mismatch,gapopen,qstart,qend,tstart,tend,evalue,bits,u,t"
 
 FIDENT_THRESHOLD=0.1
-BITS_THRESHOLD=250
+BITS_THRESHOLD=500
 
 FINGERPRINT_RADIUS = 5.5
 FINGERPRINT_DB=Path("db/fingerprintDB_55")

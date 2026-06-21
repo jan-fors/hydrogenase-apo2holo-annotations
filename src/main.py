@@ -321,6 +321,18 @@ def predict_cofactors_by_pockets(fingerprint_db_path : Path, pockets : dict, sea
                 search_type_command = search_type
             hits = fingerprintDB.search(F=fingerprints, search_type=search_type_command, model=model)
 
+            ############# REMOVE
+            AA_COLS_A = ['A', 'R', 'N', 'D', 'C', 'Q', 'E', 'G',
+           'H', 'I', 'L', 'K', 'M', 'F', 'P', 'S',
+           'T', 'W', 'Y', 'V']
+
+            print(AA_COLS_A)
+            for f in fingerprints:
+                print(f, f.sum())
+            
+
+            ############# REMOVE
+
             # count
             pocket_hits[key] = _aggregate_probs(hits)
 
@@ -333,6 +345,17 @@ def predict_cofactors_by_pockets(fingerprint_db_path : Path, pockets : dict, sea
                 F = [create_fingerprint(input_path, center, f_radius)]
             else:
                 F = [create_fingerprint(input_path, center)]
+
+            ############# REMOVE
+            AA_COLS_A = ['A', 'R', 'N', 'D', 'C', 'Q', 'E', 'G',
+           'H', 'I', 'L', 'K', 'M', 'F', 'P', 'S',
+           'T', 'W', 'Y', 'V']
+
+            print(AA_COLS_A)
+            print(F, np.array(F).sum())
+            
+
+            ############# REMOVE
             
             # search
             printl(f"Searching pocket {key} against fingerprint database...")
