@@ -36,7 +36,7 @@ from src.utils.smiles import SMILES
 from typing import List
 from collections import defaultdict
 
-create_fingerprint = create_feature_fingerprint
+create_fingerprint = create_physiochemical_radial_angular
 
 ######################## HELPER FUNCTIONS ########################
 

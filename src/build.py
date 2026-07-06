@@ -57,7 +57,7 @@ def build_fingerprint_db(raw_input_dir : Path, fingerprint_db_path : Path, jobs 
     """
     fingerprintDB = FingerprintDB(fingerprint_db_path)
 
-    fingerprintDB.build_db(input_directory=raw_input_dir, extend_background_samples=True, f_radius=6.0, train_models=True, threads=jobs)
+    fingerprintDB.build_db(input_directory=raw_input_dir, extend_background_samples=True, cofactor_augmentation=True, f_radius=6.0, train_models=True, threads=jobs)
 
     fingerprintDB.save(save_models = True)
 
