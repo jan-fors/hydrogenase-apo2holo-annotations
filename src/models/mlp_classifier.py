@@ -20,7 +20,8 @@ from src.utils.constants import (
 
 from pathlib import Path
 import pickle
-
+import argparse
+import pandas as pd
 from src.io.printl import printl
 
 class CustomMLPClassifier:
@@ -87,3 +88,21 @@ class CustomMLPClassifier:
         """
         with open(path, "wb") as f:
             pickle.dump(self.model, f)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("tsv", type = Path, help="path to the fingerprint tsv file")
+    parser.add_argument("name", type=str, help="outputname")
+    parser.add_argument("-o", type=Path, default=Path("."))
+    args = parser.parse_args()
+
+    df = pd.read_csv(args.tsv, sep="\t")
+    X = df.drop(columns=['formula', 'id', 'smiles', 'res_name'])
+    X_np = X.to_numpy()
+
+    Y = df["formula"]
+    model = CustomMLPClassifier()
+    model.train(X,Y)
+
+    model.save(args.o / Path(args.name))

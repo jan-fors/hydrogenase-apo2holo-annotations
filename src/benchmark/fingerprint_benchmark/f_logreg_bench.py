@@ -64,9 +64,19 @@ def prepare_data(data: Path, test_size: float, random_state: int):
     df.reset_index(drop=True, inplace=True)
 
     X = df.drop("formula", axis=1)
+
+    
+
     y = df["formula"]
 
-    return X, y
+    Y = []
+    for i in y:
+        if i != "4FE3S" and i != "4FE4S" and i != "3FE4S":
+            Y.append("protein")
+        else:
+            Y.append(i)
+    Y = pd.Series(Y)
+    return X, Y
 
 
 def bench(data, random_state, test_size, scoring, jobs, k, n_iter):

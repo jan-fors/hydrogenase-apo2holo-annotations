@@ -7,6 +7,7 @@ from src.utils.protein.extract_chain import extract_chain
 from src.filter.apply_blacklist import apply_blacklist_to_input_structures
 from Bio import PDB
 import subprocess
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 
 class StructureDB:
@@ -68,6 +69,7 @@ class StructureDB:
         data_dir: Path,
         output_data_dir_path: Path = STRUCTURE_DIR,
         structure_db_path: Path = STRUCTURE_DB,
+        threads : int = 1
     ):
         """
         create a database
@@ -78,25 +80,40 @@ class StructureDB:
         self.input_data_dir_path = data_dir
         self.output_data_dir_path = output_data_dir_path
 
-        for file in os.listdir(data_dir):
-            """ """
-            file_path = os.path.join(data_dir, file)
-            if not os.path.exists(file_path):
-                printl(f"{file_path} does not exist.")
-                continue
+        files = os.listdir(data_dir)
 
-            # get chains
-            chains = get_chains(file_path)
-
-            # split each structure into subunits
-            for chain in chains:
-                result_structure = extract_chain(file_path, output_data_dir_path, chain)
-                apply_blacklist_to_input_structures(result_structure)
-                self._use_first_model(result_structure)
+        with ThreadPoolExecutor(max_workers=threads) as executor:
+            futures = {
+                executor.submit(self._process_file, file, data_dir, output_data_dir_path): file
+                for file in files
+            }
+            for future in as_completed(futures):
+                file = futures[future]
+                try:
+                    future.result()
+                except Exception as e:
+                    printl(f"Failed on {file}: {e}")
 
         self._create_foldseek_db(output_data_dir_path, structure_db_path)
 
         self.structure_db_path = structure_db_path
+
+    def _process_file(self, file: str, data_dir : Path, output_data_dir_path : Path):
+        """
+        """
+        file_path = os.path.join(data_dir, file)
+        if not os.path.exists(file_path):
+            printl(f"{file_path} does not exist.")
+
+        # get chains
+        chains = get_chains(file_path)
+
+        # split each structure into subunits
+        for chain in chains:
+            result_structure = extract_chain(file_path, output_data_dir_path, chain)
+            apply_blacklist_to_input_structures(result_structure)
+            self._use_first_model(result_structure)
+
 
     def get_structure_path(self, name: str):
         """ """
