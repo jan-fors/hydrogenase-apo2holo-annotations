@@ -13,7 +13,7 @@ from src.utils.geometric.calculate_geometric_centers import calculate_geometric_
 from src.io.plot import plot_protein
 from src.filter.apply_blacklist import apply_blacklist
 from src.filter.apply_whitelist import apply_whitelist, apply_active_site_whitelist, apply_fes_whitelist
-from src.fingerprint.create_fingerprint import create_fingerprint
+from src.fingerprint.create_fingerprint import create_aminoacid_fingerprint, create_physiochemical_radial_angular, create_feature_fingerprint
 from src.io.printl import printl, print_probabilities
 from src.io.result_table import write_to_result_table
 import json
@@ -35,6 +35,8 @@ from src.database.FingerprintDB import FingerprintDB
 from src.utils.smiles import SMILES
 from typing import List
 from collections import defaultdict
+
+create_fingerprint = create_feature_fingerprint
 
 ######################## HELPER FUNCTIONS ########################
 
@@ -808,8 +810,6 @@ def main(input_path : Path, out : Path, tmp : Path, boltz : bool, plot: bool, st
 
     # step 2: predict active site probability per pocket
     active_site_probabilites = _predict_active_site_prob_by_pockets(fingerprint_db_path=fingerprint_db_path, pockets=active_site_pockets, search_type=search_type, input_path=input_path, model=active_site_model, f_radius=f_radius)
-
-    
 
     # step 3: choose highest confidence active site
     active_site_pocket_key = _choose_highest_conf_active_site_pocket(active_site_probabilites)

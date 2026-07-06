@@ -20,7 +20,8 @@ from src.utils.smiles import SMILES
 from src.filter.apply_blacklist import apply_blacklist_build
 from src.filter.apply_whitelist import apply_whitelist_build
 from src.utils.geometric.calculate_geometric_centers import calculate_geometric_centers
-from src.fingerprint.create_fingerprint import create_fingerprint
+
+from src.fingerprint.create_fingerprint import create_aminoacid_fingerprint, create_physiochemical_radial_angular, create_feature_fingerprint
 import uuid
 from Bio.PDB import PDBParser
 from Bio.PDB.PDBExceptions import PDBConstructionWarning
@@ -38,6 +39,8 @@ warnings.filterwarnings(
     "ignore",
     message="X does not have valid feature names"
 )
+
+create_fingerprint=create_feature_fingerprint
 
 class FingerprintDB:
     def __init__(self, db_directory : Path = None):
@@ -97,7 +100,6 @@ class FingerprintDB:
         if os.path.exists(self.fes_random_forest_model_path):
             self.fes_random_forest_model = CustomRandomForestClassifier().load(self.fes_random_forest_model_path)
 
-
     def load(self, db_path : Path = FINGERPRINT_DB, model_path : Path = MODEL):
         """
         TODO unused till here
@@ -124,20 +126,20 @@ class FingerprintDB:
         if save_models:
             # save models
             # logreg model
-            self.as_logistic_regression_model.save(self.as_logistic_regression_model_path)
-            self.fes_logistic_regression_model.save(self.fes_logistic_regression_model_path)
+            # self.as_logistic_regression_model.save(self.as_logistic_regression_model_path)
+            # self.fes_logistic_regression_model.save(self.fes_logistic_regression_model_path)
             
-            # svm model
-            self.as_svm_model.save(self.as_svm_model_path)
-            self.fes_svm_model.save(self.fes_svm_model_path)
+            # # svm model
+            # self.as_svm_model.save(self.as_svm_model_path)
+            # self.fes_svm_model.save(self.fes_svm_model_path)
 
             # mlp
             self.as_mlp_classifier_model.save(self.as_mlp_classifier_model_path)
             self.fes_mlp_classifier_model.save(self.fes_mlp_classifier_model_path)
                 
-            # random forest
-            self.as_random_forest_model.save(self.as_random_forest_model_path)
-            self.fes_random_forest_model.save(self.fes_random_forest_model_path)
+            # # random forest
+            # self.as_random_forest_model.save(self.as_random_forest_model_path)
+            # self.fes_random_forest_model.save(self.fes_random_forest_model_path)
         
     def save_fingerprint_tsv(self, path : Path):
         """"""
@@ -234,8 +236,6 @@ class FingerprintDB:
         self.db = self._build_db_table(input_directory, f_radius, extend_background_samples, threads=threads)
         #self.absolut_search_engine = AbsolutSearchEngine().load_dataframe(self.db_path)
 
-        print(self.db["formula"].value_counts())
-
         if train_models:
             # prep data:
             df = self.db
@@ -261,21 +261,21 @@ class FingerprintDB:
                 if val != "protein" and val != "active_site":
                     Y.iloc[i] = "protein"
 
-            # train_log_reg
-            self.as_logistic_regression_model = LogisticRegressionModel()
-            self.as_logistic_regression_model.train(X_np, Y)
+            # # train_log_reg
+            # self.as_logistic_regression_model = LogisticRegressionModel()
+            # self.as_logistic_regression_model.train(X_np, Y)
 
-            # train svm
-            self.as_svm_model = SupportVectorMachine()
-            self.as_svm_model.train(X_np, Y)
+            # # train svm
+            # self.as_svm_model = SupportVectorMachine()
+            # self.as_svm_model.train(X_np, Y)
 
             # train mlp classifier
             self.as_mlp_classifier_model = CustomMLPClassifier()
             self.as_mlp_classifier_model.train(X_np, Y)
 
-            # train random forest model
-            self.as_random_forest_model = CustomRandomForestClassifier()
-            self.as_random_forest_model.train(X_np, Y)
+            # # train random forest model
+            # self.as_random_forest_model = CustomRandomForestClassifier()
+            # self.as_random_forest_model.train(X_np, Y)
 
             # train fes models
             Y = self.db["formula"]
@@ -284,21 +284,21 @@ class FingerprintDB:
                 if val == "active_site":
                     Y.iloc[i] = "protein"
 
-            # train_log_reg
-            self.fes_logistic_regression_model = LogisticRegressionModel()
-            self.fes_logistic_regression_model.train(X_np, Y)
+            # # train_log_reg
+            # self.fes_logistic_regression_model = LogisticRegressionModel()
+            # self.fes_logistic_regression_model.train(X_np, Y)
 
-            # train svm
-            self.fes_svm_model = SupportVectorMachine()
-            self.fes_svm_model.train(X_np, Y)
+            # # train svm
+            # self.fes_svm_model = SupportVectorMachine()
+            # self.fes_svm_model.train(X_np, Y)
 
             # train mlp classifier
             self.fes_mlp_classifier_model = CustomMLPClassifier()
             self.fes_mlp_classifier_model.train(X_np, Y)
 
-            # train random forest model
-            self.fes_random_forest_model = CustomRandomForestClassifier()
-            self.fes_random_forest_model.train(X_np, Y)
+            # # train random forest model
+            # self.fes_random_forest_model = CustomRandomForestClassifier()
+            # self.fes_random_forest_model.train(X_np, Y)
 
     def _load_databasefile(self, db_path : Path):
         """
@@ -346,37 +346,9 @@ class FingerprintDB:
     def _build_db_table(self, input_directory : Path, f_radius : float, extend_background_samples : bool = False, threads : int = 1):
         """
         """
-        db_df = pd.DataFrame({
-                "id" : [],
-                "res_name": [],
-                "smiles": [],
-                "formula": [],
-                "ALA": [],
-                "ARG": [],
-                "ASN": [],
-                "ASP": [],
-                "CYS": [],
-                "GLN": [],
-                "GLU": [],
-                "GLY": [],
-                "HIS": [],
-                "ILE": [],
-                "LEU": [],
-                "LYS": [],
-                "MET": [],
-                "PHE": [],
-                "PRO": [],
-                "SER": [],
-                "THR": [],
-                "TRP": [],
-                "TYR": [],
-                "VAL": []
-            })
-        
-        counter87 = 0
 
         structures = os.listdir(input_directory)
-        all = len(list(structures))
+
         results = []
         with ProcessPoolExecutor(max_workers=threads) as executor:
             futures = {
@@ -399,32 +371,7 @@ class FingerprintDB:
     def _process_structure(self, structure : str, input_directory : Path, f_radius, extend_background_samples : bool = False) -> pd.DataFrame:
         """
         """
-        db_df = pd.DataFrame({
-                "id" : [],
-                "res_name": [],
-                "smiles": [],
-                "formula": [],
-                "ALA": [],
-                "ARG": [],
-                "ASN": [],
-                "ASP": [],
-                "CYS": [],
-                "GLN": [],
-                "GLU": [],
-                "GLY": [],
-                "HIS": [],
-                "ILE": [],
-                "LEU": [],
-                "LYS": [],
-                "MET": [],
-                "PHE": [],
-                "PRO": [],
-                "SER": [],
-                "THR": [],
-                "TRP": [],
-                "TYR": [],
-                "VAL": []
-            })
+        db_df = pd.DataFrame()
         structure_path = os.path.join(input_directory, structure)
         if not os.path.exists(structure_path):
             if True: #TODO change to verbose
@@ -441,8 +388,6 @@ class FingerprintDB:
 
         cofactors, _ = apply_whitelist_build(cofactors)
 
-        
-
         printl(f"Structure {structure} has {len(cofactors)} cofactors after filtering.")
         # identify geometric center
         cofactors = calculate_geometric_centers(cofactors, "atoms")
@@ -455,13 +400,12 @@ class FingerprintDB:
 
         # for each cofactor left
         for c in cofactors:
-            #print(cofactors[c]["res_name"])
-            #print(cofactors[c]["atoms"])
+
 
             # create fingerprint
             F = create_fingerprint(structure_path, cofactors[c]["geometric_center"], f_radius)
-            
-            F_dict = {i: F[AA_ORDER.index(i)] for i in AA_ORDER}
+     
+            F_dict = {i: value for i, value in enumerate(F)}
 
             # create formula
             atoms = Counter(atom[0].upper() for atom in cofactors[c]["atoms"]
@@ -474,9 +418,7 @@ class FingerprintDB:
             if "NI" in atoms_lst or "N" in atoms_lst:
                 formula  = "active_site"
             else:                
-                formula = self._counter_to_formula(atoms)
-
-            
+                formula = self._counter_to_formula(atoms)           
 
             # skip anything thats not 3/4FE3/4S
             if formula not in ("3FE4S", "4FE3S", "4FE4S", "active_site"): # TODO open at some point for other fes clusters
@@ -492,15 +434,13 @@ class FingerprintDB:
             F_dict["id"] = [c]
             F_dict["res_name"] = [cofactors[c]["res_name"]]
 
-            #print(F_dict)
-
             db_df = pd.concat([db_df, pd.DataFrame(F_dict)], ignore_index=True)
 
         # test none class
         for c in blacklisted:
             # create Fingerprint
             F = create_fingerprint(structure_path, blacklisted[c]["geometric_center"])
-            F_dict = {i: F[AA_ORDER.index(i)] for i in AA_ORDER}
+            F_dict = {i: value for i, value in enumerate(F)}
             F_dict["formula"] = "protein"
             F_dict["smiles"] = "None"
             F_dict["id"] = [c]
@@ -538,7 +478,7 @@ class FingerprintDB:
                 # check distance to cofactor geometric centers
                 if all(point_distance(sample[0], sample[1], sample[2], cofactors[o]["geometric_center"][0], cofactors[o]["geometric_center"][1], cofactors[o]["geometric_center"][2]) >= MIN_DIST_ARTIFICAL_SAMPLES for o in cofactors.keys()):
                     F = create_fingerprint(structure_path, sample)
-                    F_dict = {i: F[AA_ORDER.index(i)] for i in AA_ORDER}
+                    F_dict = {i: value for i, value in enumerate(F)}
                     F_dict["formula"] = "protein"
                     F_dict["smiles"] = "None"
                     F_dict["id"] = ["None"]
