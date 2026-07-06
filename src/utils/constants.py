@@ -1,6 +1,5 @@
 from pathlib import Path
 import numpy as np
-
 VERBOSE=True
 
 COFACTOR_BLACKLIST = [
@@ -24,7 +23,7 @@ AA_ORDER = [
     "SER","THR","TRP","TYR","VAL"
 ]
 
-STRUCTURE_DIR=Path("db/single_chains")#"dat/single_chains"#2026-03-06-raw_structures"
+STRUCTURE_DIR=Path("db2/single_chains")#"dat/single_chains"#2026-03-06-raw_structures"
 
 NN_CLUSTERING_RADIUS = 4.0
 
@@ -37,7 +36,9 @@ FOLDSEEK_OUT_FORMAT="query,target,fident,alnlen,mismatch,gapopen,qstart,qend,tst
 FIDENT_THRESHOLD=0.1
 BITS_THRESHOLD=500
 
+
 FINGERPRINT_RADIUS = 5.5
+
 FINGERPRINT_DB=Path("db/fingerprintDB_55")
 CLASS_LABEL_ORDER = []
 MODEL = ""
@@ -65,7 +66,7 @@ SVC_TOLERANCE=0.002
 SVC_C=1.0
 
 # mlpclassifier params
-MLP_ACTIVATION = 'tanh'
+MLP_ACTIVATION = 'relu'
 MLP_SOLVER = "adam"
 MLP_ALPHA = np.float64(3.695879010047527e-05)
 MLP_MAX_ITER = 10000
@@ -73,7 +74,7 @@ MLP_BATCH_SIZE = "auto"
 MLP_BETA_1 = np.float64(0.9181621909301618)
 MLP_BETA_2 = np.float64(0.9835234744946176)
 MLP_EARLY_STOPPING = False
-MLP_HIDDEN_LAYERS = (128,256,128,64)
+MLP_HIDDEN_LAYERS = (500,250)
 MLP_LEARNING_RATE = 'invscaling'
 MLP_LEARNING_RATE_INIT = np.float64(0.000976339545835049)
 MLP_MOMENTUM = np.float64(0.5492048991630394)

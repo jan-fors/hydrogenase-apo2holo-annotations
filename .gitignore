@@ -15,6 +15,8 @@ logs/
 scripts/
 
 db/
+db2/
+db3/
 dat/single_chains/*
 dat/dimer_dataset/*
 dat/benchmarking_subsets/*
