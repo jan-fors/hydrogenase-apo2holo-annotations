@@ -94,8 +94,8 @@ def create_physiochemical_radial_angular(structure_path, point, fingerprint_radi
     soap = SOAP(
         species=ALLOWED_SPECIES,
         r_cut=fingerprint_radius,
-        n_max=4,
-        l_max=3,
+        n_max=5,
+        l_max=4,
         sigma=0.5,
         periodic=False,
         rbf="gto",

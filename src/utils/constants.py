@@ -23,7 +23,7 @@ AA_ORDER = [
     "SER","THR","TRP","TYR","VAL"
 ]
 
-STRUCTURE_DIR=Path("db2/single_chains")#"dat/single_chains"#2026-03-06-raw_structures"
+STRUCTURE_DIR=Path("db/single_chains")#"dat/single_chains"#2026-03-06-raw_structures"
 
 NN_CLUSTERING_RADIUS = 4.0
 

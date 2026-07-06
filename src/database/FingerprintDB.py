@@ -40,7 +40,7 @@ warnings.filterwarnings(
     message="X does not have valid feature names"
 )
 
-create_fingerprint=create_feature_fingerprint
+create_fingerprint=create_physiochemical_radial_angular
 
 class FingerprintDB:
     def __init__(self, db_directory : Path = None):
@@ -229,11 +229,11 @@ class FingerprintDB:
                 printl("Use valid earch option. [logreg, absolut]")
                 return []
         
-    def build_db(self, input_directory : Path, f_radius : float = FINGERPRINT_RADIUS, train_models : bool = True, extend_background_samples : bool = False, threads : int = 1):
+    def build_db(self, input_directory : Path, f_radius : float = FINGERPRINT_RADIUS, train_models : bool = True, extend_background_samples : bool = False,cofactor_augmentation : bool = False, threads : int = 1):
         """
         """
         # build db table
-        self.db = self._build_db_table(input_directory, f_radius, extend_background_samples, threads=threads)
+        self.db = self._build_db_table(input_directory, f_radius, extend_background_samples, cofactor_augmentation, threads=threads)
         #self.absolut_search_engine = AbsolutSearchEngine().load_dataframe(self.db_path)
 
         if train_models:
@@ -343,7 +343,7 @@ class FingerprintDB:
 
         return dict(results)
     
-    def _build_db_table(self, input_directory : Path, f_radius : float, extend_background_samples : bool = False, threads : int = 1):
+    def _build_db_table(self, input_directory : Path, f_radius : float, extend_background_samples : bool = False, cofactor_augmentation : bool = False, threads : int = 1):
         """
         """
 
@@ -352,7 +352,7 @@ class FingerprintDB:
         results = []
         with ProcessPoolExecutor(max_workers=threads) as executor:
             futures = {
-                executor.submit(self._process_structure, file, input_directory, f_radius, extend_background_samples): file
+                executor.submit(self._process_structure, file, input_directory, f_radius, extend_background_samples, cofactor_augmentation): file
                 for file in structures
             }
             for future in as_completed(futures):
@@ -368,7 +368,7 @@ class FingerprintDB:
         final_df = pd.concat(results, ignore_index=True) if results else pd.DataFrame()
         return final_df
     
-    def _process_structure(self, structure : str, input_directory : Path, f_radius, extend_background_samples : bool = False) -> pd.DataFrame:
+    def _process_structure(self, structure : str, input_directory : Path, f_radius, extend_background_samples : bool = False, cofactor_augmentation : bool = False) -> pd.DataFrame:
         """
         """
         db_df = pd.DataFrame()
@@ -400,41 +400,53 @@ class FingerprintDB:
 
         # for each cofactor left
         for c in cofactors:
+            if cofactor_augmentation:
+                g_center = cofactors[c]["geometric_center"]
 
+                a_centers = self._random_points_in_sphere(g_center, 2.0, 5)
 
-            # create fingerprint
-            F = create_fingerprint(structure_path, cofactors[c]["geometric_center"], f_radius)
-     
-            F_dict = {i: value for i, value in enumerate(F)}
+                centers = [g_center]
+                
+                for i in a_centers:
+                    centers.append(i)
+            else:
+                centers = [cofactors[c]["geometric_center"]]
 
-            # create formula
-            atoms = Counter(atom[0].upper() for atom in cofactors[c]["atoms"]
-                if atom[0].upper() in {"FE", "S"})
-            
-            #print(atoms)
+            for center in centers:
 
-            atoms_lst = [atom[0] for atom in cofactors[c]["atoms"]]
+                # create fingerprint
+                F = create_fingerprint(structure_path, center, f_radius)
+        
+                F_dict = {i: value for i, value in enumerate(F)}
 
-            if "NI" in atoms_lst or "N" in atoms_lst:
-                formula  = "active_site"
-            else:                
-                formula = self._counter_to_formula(atoms)           
+                # create formula
+                atoms = Counter(atom[0].upper() for atom in cofactors[c]["atoms"]
+                    if atom[0].upper() in {"FE", "S"})
+                
+                #print(atoms)
 
-            # skip anything thats not 3/4FE3/4S
-            if formula not in ("3FE4S", "4FE3S", "4FE4S", "active_site"): # TODO open at some point for other fes clusters
-                continue
+                atoms_lst = [atom[0] for atom in cofactors[c]["atoms"]]
 
-            F_dict["formula"] = formula
-            
-            try:
-                F_dict["smiles"] = [SMILES[formula]] #TODO change to smiles
-            except:
-                F_dict["smiles"] = "UwU"
+                if "NI" in atoms_lst or "N" in atoms_lst:
+                    formula  = "active_site"
+                else:                
+                    formula = self._counter_to_formula(atoms)           
 
-            F_dict["id"] = [c]
-            F_dict["res_name"] = [cofactors[c]["res_name"]]
+                # skip anything thats not 3/4FE3/4S
+                if formula not in ("3FE4S", "4FE3S", "4FE4S", "active_site"): # TODO open at some point for other fes clusters
+                    continue
 
-            db_df = pd.concat([db_df, pd.DataFrame(F_dict)], ignore_index=True)
+                F_dict["formula"] = formula
+                
+                try:
+                    F_dict["smiles"] = [SMILES[formula]] #TODO change to smiles
+                except:
+                    F_dict["smiles"] = "UwU"
+
+                F_dict["id"] = [c]
+                F_dict["res_name"] = [cofactors[c]["res_name"]]
+
+                db_df = pd.concat([db_df, pd.DataFrame(F_dict)], ignore_index=True)
 
         # test none class
         for c in blacklisted:
@@ -490,6 +502,16 @@ class FingerprintDB:
             
         printl(f"Structrue {structure} complete ...")
         return db_df
+
+    def _random_points_in_sphere(self, center, radius, n):
+        center = np.array(center, dtype=float)
+        points = []
+        while len(points) < n:
+            # sample in a cube, reject points outside the sphere
+            p = np.random.uniform(-radius, radius, size=(3,))
+            if np.linalg.norm(p) <= radius:
+                points.append(center + p)
+        return np.array(points)
 
     def _counter_to_formula(self, counter: Counter) -> str:
         return "".join(f"{count}{key}" for key, count in sorted(counter.items()))
