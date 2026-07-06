@@ -24,10 +24,26 @@
     - [X] when creating the training set -> smaller min-seq-id threshold
 
 ### IMPORTANT
-- [ ] test with apostructures from experimental files
+- [X] test with apostructures from experimental files
 - [X] remove GLY from search? -> *no positive effect*
-- [ ] increase background class size? -> make background class stronger
-    - [ ] background class too different?
+- [X] increase background class size? -> make background class stronger
+    - [X] background class too different?
     - [X] create artificial background class samples?
 
 - [ ] implement absolut search
+
+
+## Idee
+- [ ] cluster sf4 proteins using foldseek and extract the fingerprints
+- [ ] look at patterns in the data
+
+# TODO: Big update
+- multithreaded db creation
+- train two different models
+- when identifying pockets differ between active_site pockets and fes pockets
+- augment the data by: not just using the center of the cofactor but also the center in any direction v (x,y,z) and the fingeprint there
+
+- create two models
+    - one for active sites
+    - one for fes cluster
+-> two fingerprint.tsvs -> *can have different radii*

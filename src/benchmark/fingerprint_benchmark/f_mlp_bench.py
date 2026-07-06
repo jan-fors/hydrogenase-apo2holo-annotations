@@ -44,10 +44,9 @@ def get_pipeline(random_state: int):
 
 def get_param_distributions():
     param_distributions_mlp = {
-    "clf__hidden_layer_sizes":  [(64,), (128,), (256,),
-                                 (64, 32), (128, 64), (256, 128),
-                                 (128, 64, 32), (256, 128, 64),
-                                 (512, 256, 128)],
+    "clf__hidden_layer_sizes":  [(20,), (20,40), (20,40,20), (20,40,60,40,20), (64,), (128,), (256,),
+                                 (64, 32), (128, 64), (256, 128), (40, 20),
+                                 (128, 64, 32),],
     "clf__activation":          ["relu", "relu", "relu", "tanh", "logistic"],
     "clf__solver":              ["adam", "adam", "adam", "sgd"],
     "clf__alpha":               loguniform(1e-5, 1e-1),
@@ -79,7 +78,16 @@ def prepare_data(data: Path, test_size: float, random_state: int):
     X = df.drop("formula", axis=1)
     y = df["formula"]
 
-    return X, y
+    Y = []
+    for i in y:
+        
+        if i != "4FE3S" and i != "4FE4S" and i != "3FE4S":
+        #if i != "active_site": 
+            Y.append("protein")
+        else:
+            Y.append(i)
+    Y = pd.Series(Y)
+    return X, Y
 
 
 def bench(data, random_state, test_size, scoring, jobs, k, n_iter):
