@@ -1,7 +1,24 @@
+"""
+    constants.py
+"""
+# imports
 from pathlib import Path
 import numpy as np
-VERBOSE=True
 
+# general
+VERBOSE =           True
+
+# paths
+STRUCTURE_DB =      Path("db/structureDB/structureDB")
+STRUCTURE_DIR =     Path("db/single_chains")
+
+FINGERPRINT_DB =    Path("db/fingerprintDB") 
+ACTIVE_SITE_MODEL = Path("db/fingerprintDB/as_mlp_classifier_model.pkl")
+FES_MODEL =         Path("db/fingerprintDB/fes_mlp_classifier_model.pkl")
+
+TMP =               Path("tmp")
+
+# lists
 COFACTOR_BLACKLIST = [
     "FE2", "MPD", "CL", "IMD", "CSD", "OCS", "PSW", "CA", "SE7", 
     "UOX","CO3", "SBY", "H2S", "HOH", "SO4", "MRD", "VK3", "DHI", 
@@ -23,29 +40,31 @@ AA_ORDER = [
     "SER","THR","TRP","TYR","VAL"
 ]
 
-STRUCTURE_DIR=Path("db/single_chains")#"dat/single_chains"#2026-03-06-raw_structures"
+# search
+NN_CLUSTERING_RADIUS =  4.0
 
-NN_CLUSTERING_RADIUS = 4.0
+FOLDSEEK_OUT_FORMAT =   "query,target,fident,alnlen,mismatch,gapopen,qstart,qend,tstart,tend,evalue,bits,u,t"
+FIDENT_THRESHOLD =      0.1
+BITS_THRESHOLD =        500
 
-AMOUNT_ARTIFICAL_SAMPLES = 5
-MIN_DIST_ARTIFICAL_SAMPLES = 6.0
+# fingerprint
+FINGERPRINT_RADIUS =    6.0
 
-STRUCTURE_DB=Path("db/structureDB/structureDB")
-FOLDSEEK_OUT_FORMAT="query,target,fident,alnlen,mismatch,gapopen,qstart,qend,tstart,tend,evalue,bits,u,t"
+SOAP_N_MAX =            6
+SOAP_L_MAX =            4
+SOAP_SIGMA =            0.5
+SOAP_RBF =              "gto"
+SOAP_ALLOWED_SPECIES =  ["C", "N", "O", "S"]
 
-FIDENT_THRESHOLD=0.1
-BITS_THRESHOLD=500
+# predict
+SEARCH_TYPE =           "mlp_sum"   #"absolut", "logreg_sum", "svm_sum", "svm_mc", "logreg_mc", "mlp_mc", "mlp_sum"
 
+# build
+AMOUNT_ARTIFICAL_SAMPLES =      5
+MIN_DIST_ARTIFICAL_SAMPLES =    6.0
 
-FINGERPRINT_RADIUS = 5.5
-
-FINGERPRINT_DB=Path("db/fingerprintDB_55")
-CLASS_LABEL_ORDER = []
+# models TODO write one active site and one fes model later
 MODEL = ""
-
-TMP="tmp"
-
-SEARCH_TYPE = "mlp_sum"   #"absolut", "logreg_sum", "svm_sum", "svm_mc", "logreg_mc", "mlp_mc", "mlp_sum"
 
 # logreg params
 LOGREG_MAX_ITER = 10000

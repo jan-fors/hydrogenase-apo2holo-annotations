@@ -37,7 +37,7 @@ class StructureDB:
         self.output_data_dir_path = output_data_dir_path
         self.structure_db_path = structure_db_path
 
-    def search(self, query_path: Path, output_path : Path):
+    def search(self, query_path: Path, output_path: Path):
         """
         foldseek easy-multimersearch example/1tim.pdb.gz example/8tim.pdb.gz result tmpFolder
         """
@@ -54,7 +54,7 @@ class StructureDB:
             "--format-output",
             FOLDSEEK_OUT_FORMAT,
         ]
-       
+
         result = subprocess.run(
             cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=True
         )
@@ -69,7 +69,7 @@ class StructureDB:
         data_dir: Path,
         output_data_dir_path: Path = STRUCTURE_DIR,
         structure_db_path: Path = STRUCTURE_DB,
-        threads : int = 1
+        threads: int = 1,
     ):
         """
         create a database
@@ -84,7 +84,9 @@ class StructureDB:
 
         with ThreadPoolExecutor(max_workers=threads) as executor:
             futures = {
-                executor.submit(self._process_file, file, data_dir, output_data_dir_path): file
+                executor.submit(
+                    self._process_file, file, data_dir, output_data_dir_path
+                ): file
                 for file in files
             }
             for future in as_completed(futures):
@@ -98,9 +100,8 @@ class StructureDB:
 
         self.structure_db_path = structure_db_path
 
-    def _process_file(self, file: str, data_dir : Path, output_data_dir_path : Path):
-        """
-        """
+    def _process_file(self, file: str, data_dir: Path, output_data_dir_path: Path):
+        """ """
         file_path = os.path.join(data_dir, file)
         if not os.path.exists(file_path):
             printl(f"{file_path} does not exist.")
@@ -114,10 +115,9 @@ class StructureDB:
             apply_blacklist_to_input_structures(result_structure)
             self._use_first_model(result_structure)
 
-
-    def get_structure_path(self, name: str):
+    def get_structure_path(self, name: str, chain_dir: Path):
         """ """
-        structure_path = os.path.join(STRUCTURE_DIR, name + ".pdb")
+        structure_path = os.path.join(chain_dir, name + ".pdb")
         if not os.path.exists(structure_path):
             print(f"{structure_path} does not exist.")
             return None

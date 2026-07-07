@@ -14,12 +14,12 @@
         - [X] compare runs
 - [ ] analyze results and find ways to increase accuracy
     - [ ] different dataset
-        - [ ] TEST: oversample 3Fe4S cluster or undersample 4Fe4S
+        - [X] TEST: oversample 3Fe4S cluster or undersample 4Fe4S
             1. deduplicate by fingeprints
             2. oversample using `random_oversampler.py`
         - [ ] TEST: generally less items *overfit*?
     - [ ] different training
-    - [ ] different models for FeS cluster and acitve site
+    - [X] different models for FeS cluster and acitve site
     - [X] ignore all unimportant aminoacids? -> just CYS, HIS, etc.. -> *no positive effect* 
     - [X] when creating the training set -> smaller min-seq-id threshold
 
@@ -33,17 +33,3 @@
 - [ ] implement absolut search
 
 
-## Idee
-- [ ] cluster sf4 proteins using foldseek and extract the fingerprints
-- [ ] look at patterns in the data
-
-# TODO: Big update
-- multithreaded db creation
-- train two different models
-- when identifying pockets differ between active_site pockets and fes pockets
-- augment the data by: not just using the center of the cofactor but also the center in any direction v (x,y,z) and the fingeprint there
-
-- create two models
-    - one for active sites
-    - one for fes cluster
--> two fingerprint.tsvs -> *can have different radii*
