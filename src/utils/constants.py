@@ -56,12 +56,18 @@ SOAP_SIGMA =            0.5
 SOAP_RBF =              "gto"
 SOAP_ALLOWED_SPECIES =  ["C", "N", "O", "S"]
 
+AC_ELEMENTS =           ["C", "N", "O", "S"]
+AC_SHELL_WIDTH =        1.0
+
 # predict
 SEARCH_TYPE =           "mlp_sum"   #"absolut", "logreg_sum", "svm_sum", "svm_mc", "logreg_mc", "mlp_mc", "mlp_sum"
 
 # build
-AMOUNT_ARTIFICAL_SAMPLES =      5
+AMOUNT_ARTIFICAL_SAMPLES =      12
 MIN_DIST_ARTIFICAL_SAMPLES =    6.0
+
+AUGMENTATION_RADIUS =           4.0
+N_AUGMENTATIONS =               12
 
 # models TODO write one active site and one fes model later
 MODEL = ""

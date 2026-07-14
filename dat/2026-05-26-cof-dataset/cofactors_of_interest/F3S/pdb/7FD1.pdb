@@ -1,62 +1,3 @@
-HEADER    ELECTRON TRANSPORT                      11-DEC-98   XXXX              
-TITLE     7-FE FERREDOXIN FROM AZOTOBACTER VINELANDII AT PH 8.5, 100 K, 1.35 A  
-KEYWDS    ELECTRON TRANSPORT, IRON-SULFUR                                       
-EXPDTA    X-RAY DIFFRACTION                                                     
-AUTHOR    C.D.STOUT,E.A.STURA,D.E.MCREE                                         
-JRNL        AUTH   C.G.SCHIPKE,D.B.GOODIN,D.E.MCREE,C.D.STOUT                   
-JRNL        TITL   OXIDIZED AND REDUCED AZOTOBACTER VINELANDII FERREDOXIN I AT  
-JRNL        TITL 2 1.4 A RESOLUTION: CONFORMATIONAL CHANGE OF SURFACE RESIDUES  
-JRNL        TITL 3 WITHOUT SIGNIFICANT CHANGE IN THE [3FE-4S]+/0 CLUSTER.       
-JRNL        REF    BIOCHEMISTRY                  V.  38  8228 1999              
-JRNL        REFN                   ISSN 0006-2960                               
-JRNL        PMID   10387068                                                     
-JRNL        DOI    10.1021/BI983008I                                            
-SEQRES   1 A  106  ALA PHE VAL VAL THR ASP ASN CYS ILE LYS CYS LYS TYR          
-SEQRES   2 A  106  THR ASP CYS VAL GLU VAL CYS PRO VAL ASP CYS PHE TYR          
-SEQRES   3 A  106  GLU GLY PRO ASN PHE LEU VAL ILE HIS PRO ASP GLU CYS          
-SEQRES   4 A  106  ILE ASP CYS ALA LEU CYS GLU PRO GLU CYS PRO ALA GLN          
-SEQRES   5 A  106  ALA ILE PHE SER GLU ASP GLU VAL PRO GLU ASP MET GLN          
-SEQRES   6 A  106  GLU PHE ILE GLN LEU ASN ALA GLU LEU ALA GLU VAL TRP          
-SEQRES   7 A  106  PRO ASN ILE THR GLU LYS LYS ASP PRO LEU PRO ASP ALA          
-SEQRES   8 A  106  GLU ASP TRP ASP GLY VAL LYS GLY LYS LEU GLN HIS LEU          
-SEQRES   9 A  106  GLU ARG                                                      
-HETNAM     SF4 IRON/SULFUR CLUSTER                                              
-HETNAM     F3S FE3-S4 CLUSTER                                                   
-FORMUL   2  SF4    FE4 S4                                                       
-FORMUL   3  F3S    FE3 S4                                                       
-FORMUL   4  HOH   *138(H2 O)                                                    
-HELIX    1   1 ASP A    6  CYS A    8  5                                   3    
-HELIX    2   2 ASP A   15  VAL A   19  5                                   5    
-HELIX    3   3 GLU A   46  GLU A   48  5                                   3    
-HELIX    4   4 GLU A   57  GLU A   59  5                                   3    
-HELIX    5   5 GLU A   62  GLU A   76  5                                  15    
-HELIX    6   6 ALA A   91  TRP A   94  1                                   4    
-HELIX    7   7 LYS A  100  HIS A  103  5                                   4    
-SHEET    1   A 2 PHE A   2  VAL A   4  0                                        
-SHEET    2   A 2 ILE A  54  SER A  56 -1  N  PHE A  55   O  VAL A   3           
-SHEET    1   B 2 PHE A  25  GLU A  27  0                                        
-SHEET    2   B 2 LEU A  32  ILE A  34 -1  N  VAL A  33   O  TYR A  26           
-LINK         SG  CYS A   8                FE1  F3S A 108     1555   1555  4.67  
-LINK         SG  CYS A   8                FE4  F3S A 108     1555   1555  2.24  
-LINK         SG  CYS A  16                FE3  F3S A 108     1555   1555  2.26  
-LINK         SG  CYS A  20                FE1  SF4 A 107     1555   1555  2.30  
-LINK         SG  CYS A  39                FE2  SF4 A 107     1555   1555  2.30  
-LINK         SG  CYS A  42                FE3  SF4 A 107     1555   1555  2.21  
-LINK         SG  CYS A  45                FE4  SF4 A 107     1555   1555  2.25  
-LINK         SG  CYS A  49                FE3  F3S A 108     1555   1555  4.67  
-LINK         SG  CYS A  49                FE1  F3S A 108     1555   1555  2.27  
-SITE     1 AC1 10 PHE A   2  CYS A  20  VAL A  22  CYS A  24                    
-SITE     2 AC1 10 PHE A  25  CYS A  39  ILE A  40  CYS A  42                    
-SITE     3 AC1 10 ALA A  43  CYS A  45                                          
-SITE     1 AC2  8 VAL A   4  CYS A   8  LYS A  12  TYR A  13                    
-SITE     2 AC2  8 THR A  14  ASP A  15  CYS A  16  CYS A  49                    
-CRYST1   54.460   54.460   92.650  90.00  90.00  90.00 P 41 21 2     8          
-ORIGX1      1.000000  0.000000  0.000000        0.00000                         
-ORIGX2      0.000000  1.000000  0.000000        0.00000                         
-ORIGX3      0.000000  0.000000  1.000000        0.00000                         
-SCALE1      0.018362  0.000000  0.000000        0.00000                         
-SCALE2      0.000000  0.018362  0.000000        0.00000                         
-SCALE3      0.000000  0.000000  0.010793        0.00000                         
 MODEL        1                                                                  
 ATOM      1  N   ALA A   1      17.773  17.760   4.719  1.00 14.34           N  
 ANISOU    1  N   ALA A   1     2973   1379   1096   -208    455    160       N  
@@ -3622,5 +3563,3 @@ ANISOU 1781  O   HOH A 245     4662   6242   6904   -317    574  -4897       O
 HETATM 1782  O   HOH A 246      17.588  19.661  29.878  1.00 48.73           O  
 ANISOU 1782  O   HOH A 246     6482   6796   5237  -1356  -1248  -1741       O  
 ENDMDL                                                                          
-MASTER        0    0    0    7    4    0    5    6  994    1    0    9          
-END                                                                             

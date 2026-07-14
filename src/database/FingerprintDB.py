@@ -13,6 +13,8 @@ from src.utils.constants import (
     FINGERPRINT_RADIUS,
     MIN_DIST_ARTIFICAL_SAMPLES,
     AMOUNT_ARTIFICAL_SAMPLES,
+    N_AUGMENTATIONS,
+    AUGMENTATION_RADIUS
 )
 from sklearn.linear_model import LogisticRegression
 from collections import Counter
@@ -24,7 +26,10 @@ from src.utils.geometric.calculate_geometric_centers import calculate_geometric_
 from src.fingerprint.create_fingerprint import (
     create_aminoacid_fingerprint,
     create_physiochemical_radial_angular,
-    create_combined_fingerprint,
+    create_aa_pcra_combined_fingerprint,
+    create_atom_count_fingerprint,
+    create_aa_ac_combined_fingerprint,
+    create_complete_fingerprint
 )
 import uuid
 from Bio.PDB import PDBParser
@@ -42,7 +47,8 @@ import warnings
 warnings.simplefilter("ignore", PDBConstructionWarning)
 warnings.filterwarnings("ignore", message="X does not have valid feature names")
 
-create_fingerprint = create_combined_fingerprint
+create_fingerprint = create_complete_fingerprint
+
 
 
 class FingerprintDB:
@@ -442,6 +448,7 @@ class FingerprintDB:
 
         # load structure and identify all cofactors exept the ones from blacklist
         hetatms = self._extract_hetatm_residues(structure_path)
+        
         printl(f"Structure {structure} has {len(hetatms)} cofactors before filtering.")
 
         cofactors, blacklisted = apply_blacklist_build(hetatms)
@@ -468,21 +475,23 @@ class FingerprintDB:
             if cofactor_augmentation:
                 g_center = cofactors[c]["geometric_center"]
 
-                a_centers = self._random_points_in_sphere(g_center, 2.0, 5)
+                a_centers = self._random_points_in_sphere(g_center, AUGMENTATION_RADIUS, N_AUGMENTATIONS)
 
-                centers = [g_center]
+                centers = [(g_center, 0.0)]
 
                 for i in a_centers:
-                    centers.append(i)
+                    centers.append((i, point_distance(g_center[0], g_center[1], g_center[2], i[0], i[1], i[2])))
             else:
-                centers = [cofactors[c]["geometric_center"]]
+                centers = [(cofactors[c]["geometric_center"], 0.0)]
 
             for center in centers:
-
                 # create fingerprint
-                F = create_fingerprint(structure_path, center, f_radius)
+                F = create_fingerprint(structure_path, center[0], f_radius)
 
                 F_dict = {i: value for i, value in enumerate(F)}
+                F_dict["aug_dist"] = center[1]
+                F_dict["structure"] = structure
+                F_dict["type"] = "cofactor"
 
                 # create formula
                 atoms = Counter(
@@ -490,8 +499,6 @@ class FingerprintDB:
                     for atom in cofactors[c]["atoms"]
                     if atom[0].upper() in {"FE", "S"}
                 )
-
-                # print(atoms)
 
                 atoms_lst = [atom[0] for atom in cofactors[c]["atoms"]]
 
@@ -523,15 +530,31 @@ class FingerprintDB:
 
         # test none class
         for c in blacklisted:
-            # create Fingerprint
-            F = create_fingerprint(structure_path, blacklisted[c]["geometric_center"])
-            F_dict = {i: value for i, value in enumerate(F)}
-            F_dict["formula"] = "protein"
-            F_dict["smiles"] = "None"
-            F_dict["id"] = [c]
-            F_dict["res_name"] = [blacklisted[c]["res_name"]]
+            if cofactor_augmentation:
+                g_center = blacklisted[c]["geometric_center"]
+                a_centers = self._random_points_in_sphere(g_center, AUGMENTATION_RADIUS, N_AUGMENTATIONS)
 
-            db_df = pd.concat([db_df, pd.DataFrame(F_dict)], ignore_index=True)
+                centers = [(g_center, 0.0)]
+
+                for i in a_centers:
+                    centers.append((i, point_distance(g_center[0], g_center[1], g_center[2], i[0], i[1], i[2])))
+            else:
+                centers = [(cofactors[c]["geometric_center"], 0.0)]
+
+            for center in centers:
+
+                # create Fingerprint
+                F = create_fingerprint(structure_path, center[0])
+                F_dict = {i: value for i, value in enumerate(F)}
+                F_dict["aug_dist"] = center[1]
+                F_dict["structure"] = structure
+                F_dict["type"] = "blacklisted cofactor"
+                F_dict["formula"] = "protein"
+                F_dict["smiles"] = "None"
+                F_dict["id"] = [c]
+                F_dict["res_name"] = [blacklisted[c]["res_name"]]
+
+                db_df = pd.concat([db_df, pd.DataFrame(F_dict)], ignore_index=True)
 
         # if extend_protein_samples
         if extend_background_samples:
@@ -542,6 +565,8 @@ class FingerprintDB:
             3. generate points using these distributions (always checking if they are to close to a cofactor geometric center)
             4. calculate fingerprint and add
             """
+            # opt A
+            
             # 1.
             x_min, x_max, y_min, y_max, z_min, z_max = self._get_protein_boundaries(
                 structure_path
@@ -579,6 +604,9 @@ class FingerprintDB:
                 ):
                     F = create_fingerprint(structure_path, sample)
                     F_dict = {i: value for i, value in enumerate(F)}
+                    F_dict["aug_dist"] = 0.0
+                    F_dict["structure"] = structure
+                    F_dict["type"] = "random background point"
                     F_dict["formula"] = "protein"
                     F_dict["smiles"] = "None"
                     F_dict["id"] = ["None"]
@@ -587,9 +615,39 @@ class FingerprintDB:
                     db_df = pd.concat([db_df, pd.DataFrame(F_dict)], ignore_index=True)
                     counter89 += 1
             printl(f"Added {counter89} artificial samples.")
+            
+            # opt b
+            for c in cofactors:
+                g_center = cofactors[c]["geometric_center"]
+
+                background_centers = self._fibonacci_sphere(g_center, f_radius, AMOUNT_ARTIFICAL_SAMPLES)
+                
+                for bc in background_centers:
+                    F = create_fingerprint(structure_path, bc)
+                    F_dict = {i: value for i, value in enumerate(F)}
+                    F_dict["aug_dist"] = 0.0
+                    F_dict["structure"] = structure
+                    F_dict["type"] = "fibonacci sphere cofactor"
+                    F_dict["formula"] = "protein"
+                    F_dict["smiles"] = "None"
+                    F_dict["id"] = ["None"]
+                    F_dict["res_name"] = ["artificial"]
+
+                    db_df = pd.concat([db_df, pd.DataFrame(F_dict)], ignore_index=True)
 
         printl(f"Structrue {structure} complete ...")
         return db_df
+
+    def _fibonacci_sphere(self, center, r, n):
+        center = np.asarray(center, dtype=float)
+        i = np.arange(n)
+        phi = np.pi * (3.0 - np.sqrt(5.0))        # golden angle
+        y = 1 - 2 * (i + 0.5) / n                  # y from 1 to -1
+        radius = np.sqrt(1 - y * y)
+        theta = phi * i
+        x = np.cos(theta) * radius
+        z = np.sin(theta) * radius
+        return center + r * np.column_stack([x, y, z])
 
     def _random_points_in_sphere(self, center, radius, n):
         center = np.array(center, dtype=float)

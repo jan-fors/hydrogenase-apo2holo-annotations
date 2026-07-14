@@ -1,43 +1,3 @@
-HEADER    ELECTRON TRANSPORT                      08-OCT-98   XXXX              
-TITLE     THE NMR SOLUTION STRUCTURE OF THE 3FE FERREDOXIN II FROM DESULFOVIBRIO
-TITLE    2 GIGAS, 15 STRUCTURES                                                 
-KEYWDS    ELECTRON TRANSPORT, FDII DESULFOVIBRIO GIGAS, FERREDOXIN II           
-EXPDTA    SOLUTION NMR                                                          
-NUMMDL    15                                                                    
-AUTHOR    B.J.GOODFELLOW,A.L.MACEDO,P.RODRIGUES,V.WRAY,I.MOURA,J.J.G.MOURA      
-JRNL        AUTH   B.J.GOODFELLOW,A.L.MACEDO,P.RODRIGUES,I.MOURA,V.WRAY,        
-JRNL        AUTH 2 J.J.MOURA                                                    
-JRNL        TITL   THE SOLUTION STRUCTURE OF A [3FE-4S] FERREDOXIN: OXIDISED    
-JRNL        TITL 2 FERREDOXIN II FROM DESULFOVIBRIO GIGAS.                      
-JRNL        REF    J.BIOL.INORG.CHEM.            V.   4   421 1999              
-JRNL        REFN                   ISSN 0949-8257                               
-JRNL        PMID   10555576                                                     
-JRNL        DOI    10.1007/S007750050328                                        
-SEQRES   1 A   58  PRO ILE GLU VAL ASN ASP ASP CYS MET ALA CYS GLU ALA          
-SEQRES   2 A   58  CYS VAL GLU ILE CYS PRO ASP VAL PHE GLU MET ASN GLU          
-SEQRES   3 A   58  GLU GLY ASP LYS ALA VAL VAL ILE ASN PRO ASP SER ASP          
-SEQRES   4 A   58  LEU ASP CYS VAL GLU GLU ALA ILE ASP SER CYS PRO ALA          
-SEQRES   5 A   58  GLU ALA ILE VAL ARG SER                                      
-HETNAM     F3S FE3-S4 CLUSTER                                                   
-FORMUL   2  F3S    FE3 S4                                                       
-HELIX    1   1 ALA A   13  ILE A   17  1                                   5    
-HELIX    2   2 ASP A   41  ASP A   48  5                                   8    
-SHEET    1   A 2 PHE A  22  MET A  24  0                                        
-SHEET    2   A 2 ALA A  31  VAL A  33 -1  N  VAL A  32   O  GLU A  23           
-SSBOND   1 CYS A   18    CYS A   42                          1555   1555  2.08  
-LINK         SG  CYS A   8                FE1  F3S A  59     1555   1555  2.30  
-LINK         SG  CYS A  14                FE4  F3S A  59     1555   1555  2.30  
-LINK         SG  CYS A  50                FE3  F3S A  59     1555   1555  2.30  
-SITE     1 AC1  9 VAL A   4  CYS A   8  CYS A  11  GLU A  12                    
-SITE     2 AC1  9 ALA A  13  CYS A  14  ALA A  31  CYS A  50                    
-SITE     3 AC1  9 ILE A  55                                                     
-CRYST1    1.000    1.000    1.000  90.00  90.00  90.00 P 1           1          
-ORIGX1      1.000000  0.000000  0.000000        0.00000                         
-ORIGX2      0.000000  1.000000  0.000000        0.00000                         
-ORIGX3      0.000000  0.000000  1.000000        0.00000                         
-SCALE1      1.000000  0.000000  0.000000        0.00000                         
-SCALE2      0.000000  1.000000  0.000000        0.00000                         
-SCALE3      0.000000  0.000000  1.000000        0.00000                         
 MODEL        1                                                                  
 ATOM      1  N   PRO A   1      -5.861   6.209   8.325  1.00  0.00           N  
 ATOM      2  CA  PRO A   1      -5.113   6.209   7.080  1.00  0.00           C  
@@ -863,5 +823,3 @@ HETATM  821  S2  F3S A  59       2.833  -5.209  -0.576  1.00  0.00           S
 HETATM  822  S3  F3S A  59      -0.499  -4.498   0.159  1.00  0.00           S  
 HETATM  823  S4  F3S A  59       0.472  -5.265  -3.274  1.00  0.00           S  
 ENDMDL                                                                          
-MASTER        0    0    0    2    2    0    3    6  437    1    0    5          
-END                                                                             

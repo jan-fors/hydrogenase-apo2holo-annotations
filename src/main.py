@@ -25,7 +25,9 @@ from src.filter.apply_whitelist import (
 from src.fingerprint.create_fingerprint import (
     create_aminoacid_fingerprint,
     create_physiochemical_radial_angular,
-    create_combined_fingerprint,
+    create_aa_pcra_combined_fingerprint,
+    create_atom_count_fingerprint,
+    create_aa_ac_combined_fingerprint
 )
 from src.io.printl import printl, print_probabilities
 from src.io.result_table import write_to_result_table
@@ -49,7 +51,7 @@ from src.utils.smiles import SMILES
 from typing import List
 from collections import defaultdict
 
-create_fingerprint = create_combined_fingerprint
+create_fingerprint = create_aa_ac_combined_fingerprint
 
 ######################## HELPER FUNCTIONS ########################
 

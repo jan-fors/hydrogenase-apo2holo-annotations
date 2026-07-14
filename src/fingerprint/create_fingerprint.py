@@ -16,6 +16,8 @@ from src.utils.constants import (
     SOAP_ALLOWED_SPECIES,
     SOAP_RBF,
     SOAP_SIGMA,
+    AC_SHELL_WIDTH,
+    AC_ELEMENTS
 )
 from Bio.PDB import PDBParser, NeighborSearch
 from ase import Atoms
@@ -101,6 +103,9 @@ def create_physiochemical_radial_angular(
     keep_mask = [s in SOAP_ALLOWED_SPECIES for s in atoms.get_chemical_symbols()]
     atoms = atoms[keep_mask]
 
+    atoms = atoms[keep_mask]
+    
+
     soap = SOAP(
         species=SOAP_ALLOWED_SPECIES,
         r_cut=fingerprint_radius,
@@ -116,8 +121,45 @@ def create_physiochemical_radial_angular(
 
     return np.array(fingerprint)
 
+def create_atom_count_fingerprint(
+    structure_path: Path, point: tuple, fingerprint_radius: float = FINGERPRINT_RADIUS
+) -> np.array:
+    point = np.asarray(point, dtype=float)
 
-def create_combined_fingerprint(
+    n_shells = int(np.ceil(fingerprint_radius / AC_SHELL_WIDTH))
+    fingerprint = np.zeros(len(AC_ELEMENTS) * n_shells, dtype=int)
+    elem_index = {e: i for i, e in enumerate(AC_ELEMENTS)}
+
+    parser = PDBParser(QUIET=True)
+    structure = parser.get_structure("s", str(structure_path))
+
+    # collect hetero residues first, then detach (don't mutate while iterating)
+    to_remove = []
+    for model in structure:
+        for chain in model:
+            for residue in chain:
+                if residue.id[0] != " ":        # non-blank hetflag = HETATM (incl. water)
+                    to_remove.append((chain, residue.id))
+
+    for chain, res_id in to_remove:
+        chain.detach_child(res_id)
+
+    for atom in structure.get_atoms():
+        dist = np.linalg.norm(atom.coord - point)
+        if dist >= fingerprint_radius:
+            continue
+
+        element = atom.element.strip().capitalize()
+        if element not in elem_index:
+            continue
+
+        shell = int(dist // AC_SHELL_WIDTH)  # 0 for [0,1), 1 for [1,2), ...
+        idx = shell * len(AC_ELEMENTS) + elem_index[element]
+        fingerprint[idx] += 1
+
+    return np.array(fingerprint)
+
+def create_aa_pcra_combined_fingerprint(
     structure_path, point, fingerprint_radius=FINGERPRINT_RADIUS
 ):
     """ """
@@ -127,3 +169,25 @@ def create_combined_fingerprint(
     )
 
     return np.concatenate([aa_fp, pra_fp])
+
+def create_aa_ac_combined_fingerprint(structure_path, point, fingerprint_radius=FINGERPRINT_RADIUS):
+    """"""
+    aa_fp = create_aminoacid_fingerprint(structure_path, point, fingerprint_radius)
+    ac_fp = create_atom_count_fingerprint(
+        structure_path, point, fingerprint_radius
+    )
+
+    return np.concatenate([aa_fp, ac_fp])
+
+def create_complete_fingerprint(structure_path, point, fingerprint_radius=FINGERPRINT_RADIUS):
+    """"""
+    aa_fp = create_aminoacid_fingerprint(structure_path, point, fingerprint_radius)
+    ac_fp = create_atom_count_fingerprint(
+        structure_path, point, fingerprint_radius
+    )
+    pra_fp = create_physiochemical_radial_angular(
+        structure_path, point, fingerprint_radius
+    )
+    print(structure_path, point, len(aa_fp), len(ac_fp), len(pra_fp))
+    return np.concatenate([aa_fp, ac_fp, pra_fp])
+

@@ -7,6 +7,7 @@ from src.utils.protein.extract_chain import extract_chain
 from src.filter.apply_blacklist import apply_blacklist_to_input_structures
 from Bio import PDB
 import subprocess
+import shutil
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 
@@ -114,6 +115,9 @@ class StructureDB:
             result_structure = extract_chain(file_path, output_data_dir_path, chain)
             apply_blacklist_to_input_structures(result_structure)
             self._use_first_model(result_structure)
+
+        # EXPERIMENT
+        shutil.copy2(file_path, output_data_dir_path)
 
     def get_structure_path(self, name: str, chain_dir: Path):
         """ """

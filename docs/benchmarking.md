@@ -48,3 +48,8 @@ python -m src.benchmark.complete_benchmark.predict benchmarking/complete_benchma
 python -m src.benchmark.complete_benchmark.predict benchmarking/complete_benchmark/subsets/ --f_radius --search_type sum --model_dir lrc/R5.0
 ```
 6. Analyze
+
+`python -m src.benchmark.complete_benchmark.read_model_results benchmarking/complete_benchmark/cl_exp_100/ --model fes_r2000_ac_fpr7.0__mc__7.0 --output_dir benchmarking`
+
+
+

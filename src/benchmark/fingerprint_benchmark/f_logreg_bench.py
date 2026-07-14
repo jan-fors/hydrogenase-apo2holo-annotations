@@ -44,7 +44,7 @@ def get_param_distributions():
     "clf__C":               loguniform(1e-4, 1e4),
     "clf__l1_ratio":        uniform(0, 1),
     "clf__solver":          ["saga"],
-    "clf__max_iter":        randint(200, 2000),
+    "clf__max_iter":        randint(200, 6000),
     "clf__fit_intercept":   [True, False],
     "clf__class_weight":    [None, "balanced"],
     "clf__tol":             loguniform(1e-6, 1e-2),
@@ -52,14 +52,17 @@ def get_param_distributions():
     return param_distributions_lr
 
 
-def prepare_data(data: Path, test_size: float, random_state: int):
+def prepare_data(data: Path, test_size: float, random_state: int, type : str):
     """ """
     df = pd.read_csv(data, sep="\t")
     printl("Read data...")
 
-    # df.drop("id", axis=1, inplace=True)
-    # df.drop("res_name", axis=1, inplace=True)
-    # df.drop("smiles", axis=1, inplace=True)
+    if "id" in df.columns:
+        df.drop("id", axis=1, inplace=True)
+    if "res_name" in df.columns:
+        df.drop("res_name", axis=1, inplace=True)
+    if "smiles" in df.columns:
+        df.drop("smiles", axis=1, inplace=True)
     df = df[~df["formula"].isin(COFACTOR_BLACKLIST)].copy()
     df.reset_index(drop=True, inplace=True)
 
@@ -68,18 +71,29 @@ def prepare_data(data: Path, test_size: float, random_state: int):
     
 
     y = df["formula"]
-
     Y = []
-    for i in y:
-        if i != "4FE3S" and i != "4FE4S" and i != "3FE4S":
-            Y.append("protein")
-        else:
-            Y.append(i)
+    if type == "as":
+        for i in y:
+            if i != "protein" and i != "active_site":
+                Y.append("protein")
+            else:
+                Y.append(i)
+    else:
+        for i in y:
+            if i == "active_site":
+                Y.append("protein")
+            else:
+                Y.append(i)
+
+
+
+    
+    
     Y = pd.Series(Y)
     return X, Y
 
 
-def bench(data, random_state, test_size, scoring, jobs, k, n_iter):
+def bench(data, random_state, test_size, scoring, jobs, k, n_iter, type):
     """ """
     printl(f"Random state={random_state}")
     printl(f"Test Size={test_size}")
@@ -87,7 +101,7 @@ def bench(data, random_state, test_size, scoring, jobs, k, n_iter):
     printl(f"CV={k}")
     printl(f"Iterations={n_iter}")
 
-    X, y = prepare_data(data, test_size, random_state)
+    X, y = prepare_data(data, test_size, random_state, type)
 
     # initial split
     X_train, X_test, y_train, y_test = train_test_split(
@@ -151,7 +165,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("data", help="Path to the fingerprint tsv file.")
     parser.add_argument(
-        "--random-state", default=0, type=int, help="Random state for reproducibility"
+        "--random-state", default=161, type=int, help="Random state for reproducibility"
     )
     parser.add_argument(
         "--test-size",
@@ -169,6 +183,7 @@ if __name__ == "__main__":
         "--k", type=int, default=5, help="Amount of Cross Validation Rounds"
     )
     parser.add_argument("--n-iter", type=int, default=10, help="Number of iterations")
+    parser.add_argument("--type", choices=["fes", "as"], default="as")
 
     args = parser.parse_args()
 
@@ -180,4 +195,5 @@ if __name__ == "__main__":
         args.jobs,
         args.k,
         args.n_iter,
+        args.type
     )

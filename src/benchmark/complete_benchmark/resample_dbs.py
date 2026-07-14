@@ -7,6 +7,8 @@ import pandas as pd
 from pathlib import Path
 from src.database.random_sampler import random_oversample
 
+TARGET_COUNT = 5000
+UNDERSAMPLE = True
 
 def resample_dbs(directory_path: Path, db_name : str):
     """
@@ -27,12 +29,12 @@ def resample_dbs(directory_path: Path, db_name : str):
             except Exception as e:
                 print(e)
 
-        new_X, new_Y = random_oversample(X, Y, target_count=1000, undersample=True)
+        new_X, new_Y = random_oversample(X, Y, target_count=TARGET_COUNT, undersample=UNDERSAMPLE)
         new_X = pd.DataFrame(new_X, columns=X.columns)   # X = the frame before resampling
         new_Y = pd.Series(new_Y, name="formula")
         out = pd.concat([new_Y, new_X], axis=1)
 
-        out_path = directory_path/Path(subset)/Path('db')/Path('fingerprintDB')/Path("resampled_"+db_name)
+        out_path = directory_path/Path(subset)/Path('db')/Path('fingerprintDB')/Path(f"r{TARGET_COUNT}_"+db_name)
         out.to_csv(out_path, index=False, sep="\t")
 
 if __name__ == "__main__":

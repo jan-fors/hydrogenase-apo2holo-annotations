@@ -8,6 +8,7 @@ import random
 import shutil
 import subprocess
 import pandas as pd
+import time
 
 def _read_test_data(test_data : Path):
     """
@@ -53,17 +54,22 @@ def _search_test_files_against_train_data(test_dir : Path, train_data : Path, mi
     # run
     subprocess.run(cmd, stdout=subprocess.DEVNULL)
 
+    time.sleep(5)
+
     # parser result
-    df = pd.read_csv(str(output_file) + "_report", sep="\t", header=None)
-    hits = df.iloc[:, 1].to_list()
+    try:
+        df = pd.read_csv(str(output_file) + "_report", sep="\t", header=None)
+        hits = df.iloc[:, 1].to_list()
 
-    for i in range(len(hits)):
-        if "_" in hits[i]:
-            hits[i] = hits[i].split("_")[0]
+        for i in range(len(hits)):
+            if "_" in hits[i]:
+                hits[i] = hits[i].split("_")[0]
 
-    hits = [x + '.pdb' for x in hits]
+        hits = [x + '.pdb' for x in hits]
 
-    return hits
+        return hits
+    except Exception as e:
+        return []
 
 def create_subsets(test_data_dir : Path, training_data_dir : Path, k : int, min_seq_id : float, out : Path, tmp : Path):
     """

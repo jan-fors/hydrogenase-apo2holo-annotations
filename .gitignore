@@ -14,6 +14,8 @@ cs_tmp
 logs/
 scripts/
 
+run.sh
+
 db/
 db2/
 db3/

@@ -1,60 +1,3 @@
-HEADER    ELECTRON TRANSPORT                      05-MAR-01   XXXX              
-TITLE     NEW INSIGHTS INTO THERMOSTABILITY OF BACTERIAL FERREDOXINS: HIGH      
-TITLE    2 RESOLUTION CRYSTAL STRUCTURE OF THE SEVEN-IRON FERREDOXIN FROM       
-TITLE    3 THERMUS THERMOPHILUS                                                 
-KEYWDS    ELECTRON TRANSPORT, THERMOPHILIC, IRON-SULFUR, AZOTOBACTER, HYDROGEN  
-KEYWDS   2 BONDS, STABILITY, HIGH RESOLUTION                                    
-EXPDTA    X-RAY DIFFRACTION                                                     
-AUTHOR    S.MACEDO-RIBEIRO,B.M.MARTINS,P.J.B.PEREIRA,G.BUSE,R.HUBER,T.SOULIMANE 
-JRNL        AUTH   S.MACEDO-RIBEIRO,B.M.MARTINS,P.J.B.PEREIRA,G.BUSE,R.HUBER,   
-JRNL        AUTH 2 T.SOULIMANE                                                  
-JRNL        TITL   NEW INSIGHTS INTO THE THERMOSTABILITY OF BACTERIAL           
-JRNL        TITL 2 FERREDOXINS: HIGH-RESOLUTION CRYSTAL STRUCTURE OF THE        
-JRNL        TITL 3 SEVEN-IRON FERREDOXIN FROM THERMUS THERMOPHILUS              
-JRNL        REF    J.BIOL.INORG.CHEM.            V.   6   663 2001              
-JRNL        REFN                   ISSN 0949-8257                               
-JRNL        PMID   11681700                                                     
-JRNL        DOI    10.1007/S007750100243                                        
-SEQRES   1 A   78  PRO HIS VAL ILE CYS GLU PRO CYS ILE GLY VAL LYS ASP          
-SEQRES   2 A   78  GLN SER CYS VAL GLU VAL CYS PRO VAL GLU CYS ILE TYR          
-SEQRES   3 A   78  ASP GLY GLY ASP GLN PHE TYR ILE HIS PRO GLU GLU CYS          
-SEQRES   4 A   78  ILE ASP CYS GLY ALA CYS VAL PRO ALA CYS PRO VAL ASN          
-SEQRES   5 A   78  ALA ILE TYR PRO GLU GLU ASP VAL PRO GLU GLN TRP LYS          
-SEQRES   6 A   78  SER TYR ILE GLU LYS ASN ARG LYS LEU ALA GLY LEU GLU          
-HETNAM     SF4 IRON/SULFUR CLUSTER                                              
-HETNAM     F3S FE3-S4 CLUSTER                                                   
-FORMUL   2  SF4    FE4 S4                                                       
-FORMUL   3  F3S    FE3 S4                                                       
-FORMUL   4  HOH   *58(H2 O)                                                     
-HELIX    1   1 GLU A    6  ILE A    9  5                                   4    
-HELIX    2   2 GLN A   14  CYS A   20  1                                   7    
-HELIX    3   3 ALA A   44  CYS A   49  1                                   6    
-HELIX    4   4 GLU A   58  VAL A   60  5                                   3    
-HELIX    5   5 PRO A   61  TRP A   64  5                                   4    
-HELIX    6   6 LYS A   65  ALA A   75  1                                  11    
-SHEET    1  AA 2 HIS A   2  ILE A   4  0                                        
-SHEET    2  AA 2 ILE A  54  PRO A  56 -1  O  TYR A  55   N  VAL A   3           
-SHEET    1  AB 2 ILE A  25  ASP A  27  0                                        
-SHEET    2  AB 2 PHE A  32  ILE A  34 -1  O  TYR A  33   N  TYR A  26           
-LINK         SG  CYS A   8                FE3  F3S A 108     1555   1555  2.21  
-LINK         SG  CYS A  16                FE1  F3S A 108     1555   1555  2.20  
-LINK         SG  CYS A  20                FE2  SF4 A 107     1555   1555  2.29  
-LINK         SG  CYS A  39                FE1  SF4 A 107     1555   1555  2.27  
-LINK         SG  CYS A  42                FE4  SF4 A 107     1555   1555  2.36  
-LINK         SG  CYS A  45                FE3  SF4 A 107     1555   1555  2.21  
-LINK         SG  CYS A  49                FE4  F3S A 108     1555   1555  2.28  
-SITE     1 AC1 10 HIS A   2  CYS A  20  VAL A  22  CYS A  24                    
-SITE     2 AC1 10 ILE A  34  CYS A  39  ILE A  40  CYS A  42                    
-SITE     3 AC1 10 GLY A  43  CYS A  45                                          
-SITE     1 AC2  7 CYS A   8  ASP A  13  GLN A  14  SER A  15                    
-SITE     2 AC2  7 CYS A  16  CYS A  49  VAL A  51                               
-CRYST1   29.700   42.120   62.990  90.00  90.00  90.00 P 21 21 21    4          
-ORIGX1      1.000000  0.000000  0.000000        0.00000                         
-ORIGX2      0.000000  1.000000  0.000000        0.00000                         
-ORIGX3      0.000000  0.000000  1.000000        0.00000                         
-SCALE1      0.033670  0.000000  0.000000        0.00000                         
-SCALE2      0.000000  0.023742  0.000000        0.00000                         
-SCALE3      0.000000  0.000000  0.015876        0.00000                         
 MODEL        1                                                                  
 ATOM      1  N   PRO A   1      -4.854  14.430  19.612  1.00 16.89           N  
 ATOM      2  CA  PRO A   1      -4.366  13.035  19.769  1.00 16.95           C  
@@ -726,5 +669,3 @@ HETATM  667  O   HOH A2056      -1.530  14.826  13.859  1.00 20.85           O
 HETATM  668  O   HOH A2057       2.894  14.040   7.839  1.00 30.96           O  
 HETATM  669  O   HOH A2058       4.947  10.405   5.515  1.00 39.95           O  
 ENDMDL                                                                          
-MASTER        0    0    0    6    4    0    5    6  668    1    0    6          
-END                                                                             

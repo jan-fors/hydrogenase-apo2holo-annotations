@@ -55,6 +55,9 @@ SF3: 22
 F4S: 8
 ```
 
+option B:
+filter search by: asymmetric unit, oxidoreductase, experimental and protein -> results in 831 structures
+-> seq_repr_v2
 
 ## 2026-03-06-dataset
 To aquire the structures for the initial dataset structures by search for `nife hydrogenase` on rcsb -> (548 structures 06.03.26).

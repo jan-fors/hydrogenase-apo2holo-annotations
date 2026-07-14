@@ -1,45 +1,3 @@
-HEADER    ELECTRON TRANSPORT                      19-FEB-14   XXXX              
-TITLE     THE CRYSTAL STRUCTURE OF A NOVEL ELECTRON TRANSFER FERREDOXIN FROM R. 
-TITLE    2 PALUSTRIS HAA2                                                       
-KEYWDS    3FE-4S SINGLE CLUSTER DOMAIN, PUTATIVE FERREDOXIN, ELECTRON TRANSPORT 
-EXPDTA    X-RAY DIFFRACTION                                                     
-AUTHOR    W.H.ZHOUW,T.ZHANG,A.L.ZHANG,S.G.BELL,L.-L.WONG                        
-JRNL        AUTH   T.ZHANG,A.L.ZHANG,S.G.BELL,L.-L.WONG,W.H.ZHOU                
-JRNL        TITL   THE STRUCTURE OF A NOVEL ELECTRON-TRANSFER FERREDOXIN FROM   
-JRNL        TITL 2 RHODOPSEUDOMONAS PALUSTRIS HAA2 WHICH CONTAINS A HISTIDINE   
-JRNL        TITL 3 RESIDUE IN ITS IRON-SULFUR CLUSTER-BINDING MOTIF.            
-JRNL        REF    ACTA CRYSTALLOGR.,SECT.D      V.  70  1453 2014              
-JRNL        REFN                   ESSN 1399-0047                               
-JRNL        PMID   24816113                                                     
-JRNL        DOI    10.1107/S139900471400474X                                    
-SEQRES   1 A   69  MET SER GLU MET LEU THR ILE HIS VAL ASP GLN ASP LYS          
-SEQRES   2 A   69  CYS GLN GLY HIS ALA ARG CYS LYS ALA LEU ALA PRO GLU          
-SEQRES   3 A   69  LEU PHE ASP LEU ASP ASP TYR GLY ASN ALA HIS GLU LYS          
-SEQRES   4 A   69  GLY ASP GLY VAL VAL PRO ALA ASP LEU ILE ASP LYS ALA          
-SEQRES   5 A   69  TRP LEU ALA LYS SER ASN CYS PRO GLU ASN ALA ILE ASP          
-SEQRES   6 A   69  ILE THR GLU ASP                                              
-HETNAM     F3S FE3-S4 CLUSTER                                                   
-FORMUL   2  F3S    FE3 S4                                                       
-FORMUL   3  HOH   *13(H2 O)                                                     
-HELIX    1   1 ALA A   18  ALA A   24  1                                   7    
-HELIX    2   2 PRO A   45  ASP A   47  5                                   3    
-HELIX    3   3 LEU A   48  CYS A   59  1                                  12    
-SHEET    1   A 2 LEU A   5  VAL A   9  0                                        
-SHEET    2   A 2 ILE A  64  GLU A  68 -1  O  ASP A  65   N  HIS A   8           
-SHEET    1   B 2 PHE A  28  LEU A  30  0                                        
-SHEET    2   B 2 ALA A  36  GLU A  38 -1  O  HIS A  37   N  ASP A  29           
-LINK         SG  CYS A  14                FE1  F3S A 101     1555   1555  2.39  
-LINK         SG  CYS A  20                FE3  F3S A 101     1555   1555  2.30  
-LINK         SG  CYS A  59                FE4  F3S A 101     1555   1555  2.25  
-SITE     1 AC1  8 CYS A  14  GLN A  15  GLY A  16  HIS A  17                    
-SITE     2 AC1  8 ALA A  18  ARG A  19  CYS A  20  CYS A  59                    
-CRYST1   23.362   26.810   91.192  90.00  90.00  90.00 P 21 21 21    4          
-ORIGX1      1.000000  0.000000  0.000000        0.00000                         
-ORIGX2      0.000000  1.000000  0.000000        0.00000                         
-ORIGX3      0.000000  0.000000  1.000000        0.00000                         
-SCALE1      0.042805  0.000000  0.000000        0.00000                         
-SCALE2      0.000000  0.037300  0.000000        0.00000                         
-SCALE3      0.000000  0.000000  0.010966        0.00000                         
 MODEL        1                                                                  
 ATOM      1  N   MET A   4     -10.371  11.265 -23.387  1.00 44.96           N  
 ANISOU    1  N   MET A   4     5720   5533   5829    138     22    -48       N  
@@ -1069,5 +1027,3 @@ HETATM  522  O   HOH A 211     -11.019   9.651 -11.795  1.00 24.84           O
 HETATM  523  O   HOH A 212      -6.208   3.599  -5.543  1.00 28.23           O  
 HETATM  524  O   HOH A 213      -1.395   2.356   2.708  1.00 26.86           O  
 ENDMDL                                                                          
-MASTER        0    0    0    3    4    0    2    6  523    1    0    6          
-END                                                                             

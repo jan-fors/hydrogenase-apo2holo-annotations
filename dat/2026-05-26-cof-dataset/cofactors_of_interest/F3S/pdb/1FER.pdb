@@ -1,68 +1,3 @@
-HEADER    ELECTRON TRANSFER(IRON-SULFUR PROTEIN)  02-SEP-92   XXXX              
-TITLE     STRUCTURE AT PH 6.5 OF FERREDOXIN I FROM AZOTOBACTER VINELANDII AT 2.3
-TITLE    2 ANGSTROMS RESOLUTION                                                 
-KEYWDS    ELECTRON TRANSFER(IRON-SULFUR PROTEIN)                                
-EXPDTA    X-RAY DIFFRACTION                                                     
-AUTHOR    E.A.MERRITT,G.H.STOUT,S.TURLEY,L.C.SIEKER,L.H.JENSEN,W.H.ORME-JOHNSON 
-JRNL        AUTH   E.A.MERRITT,G.H.STOUT,S.TURLEY,L.C.SIEKER,L.H.JEHSEN,        
-JRNL        AUTH 2 W.H.ORME-JOHNSON                                             
-JRNL        TITL   STRUCTURE AT PH 6.5 OF FERREDOXIN I FROM AZOTOBACTER         
-JRNL        TITL 2 VINELANDII AT 2.3 A RESOLUTION.                              
-JRNL        REF    ACTA CRYSTALLOGR.,SECT.D      V.  49   272 1993              
-JRNL        REFN                   ISSN 0907-4449                               
-JRNL        PMID   15299532                                                     
-JRNL        DOI    10.1107/S0907444992007248                                    
-REMARK   1                                                                      
-REMARK   1 REFERENCE 1                                                          
-REMARK   1  AUTH   G.H.STOUT,S.TURLEY,L.C.SIEKER,L.H.JENSEN                     
-REMARK   1  TITL   STRUCTURE OF FERREDOXIN I FROM AZOTOBACTER VINELANDII        
-REMARK   1  REF    PROC.NATL.ACAD.SCI.USA        V.  85  1020 1988              
-REMARK   1  REFN                   ISSN 0027-8424                               
-SEQRES   1 A  106  ALA PHE VAL VAL THR ASP ASN CYS ILE LYS CYS LYS TYR          
-SEQRES   2 A  106  THR ASP CYS VAL GLU VAL CYS PRO VAL ASP CYS PHE TYR          
-SEQRES   3 A  106  GLU GLY PRO ASN PHE LEU VAL ILE HIS PRO ASP GLU CYS          
-SEQRES   4 A  106  ILE ASP CYS ALA LEU CYS GLU PRO GLU CYS PRO ALA GLN          
-SEQRES   5 A  106  ALA ILE PHE SER GLU ASP GLU VAL PRO GLU ASP MET GLN          
-SEQRES   6 A  106  GLU PHE ILE GLN LEU ASN ALA GLU LEU ALA GLU VAL TRP          
-SEQRES   7 A  106  PRO ASN ILE THR GLU LYS LYS ASP PRO LEU PRO ASP ALA          
-SEQRES   8 A  106  GLU ASP TRP ASP GLY VAL LYS GLY LYS LEU GLN HIS LEU          
-SEQRES   9 A  106  GLU ARG                                                      
-HETNAM     F3S FE3-S4 CLUSTER                                                   
-HETNAM     SF4 IRON/SULFUR CLUSTER                                              
-FORMUL   2  F3S    FE3 S4                                                       
-FORMUL   3  SF4    FE4 S4                                                       
-FORMUL   4  HOH   *98(H2 O)                                                     
-HELIX    1  H1 THR A    5  LYS A   12  1                                   8    
-HELIX    2  H2 THR A   14  CYS A   20  1                                   7    
-HELIX    3  H3 HIS A   35  CYS A   39  1                                   5    
-HELIX    4  H4 CYS A   45  CYS A   49  1                                   5    
-HELIX    5  H5 SER A   56  VAL A   60  1                                   5    
-HELIX    6  H6 GLN A   65  TRP A   78  1                                  14    
-HELIX    7  H7 LEU A   88  ASP A   95  1                                   8    
-HELIX    8  H8 GLY A   99  LEU A  104  1                                   6    
-SHEET    1   A 2 PHE A   2  VAL A   4  0                                        
-SHEET    2   A 2 ILE A  54  SER A  56 -1  O  PHE A  55   N  VAL A   3           
-SHEET    1   B 2 PHE A  25  GLU A  27  0                                        
-SHEET    2   B 2 LEU A  32  ILE A  34 -1  O  VAL A  33   N  TYR A  26           
-LINK         SG  CYS A   8                FE1  F3S A 107     1555   1555  2.24  
-LINK         SG  CYS A  16                FE3  F3S A 107     1555   1555  2.24  
-LINK         SG  CYS A  20                FE4  SF4 A 108     1555   1555  2.29  
-LINK         SG  CYS A  39                FE2  SF4 A 108     1555   1555  2.25  
-LINK         SG  CYS A  42                FE3  SF4 A 108     1555   1555  2.29  
-LINK         SG  CYS A  45                FE1  SF4 A 108     1555   1555  2.25  
-LINK         SG  CYS A  49                FE4  F3S A 107     1555   1555  2.28  
-SITE     1 AC1  8 VAL A   4  CYS A   8  TYR A  13  THR A  14                    
-SITE     2 AC1  8 ASP A  15  CYS A  16  CYS A  49  ILE A  54                    
-SITE     1 AC2 11 PHE A   2  CYS A  20  VAL A  22  CYS A  24                    
-SITE     2 AC2 11 PHE A  25  ILE A  34  CYS A  39  ILE A  40                    
-SITE     3 AC2 11 CYS A  42  ALA A  43  CYS A  45                               
-CRYST1   55.550   55.550   95.650  90.00  90.00  90.00 P 41 21 2     8          
-ORIGX1      1.000000  0.000000  0.000000        0.00000                         
-ORIGX2      0.000000  1.000000  0.000000        0.00000                         
-ORIGX3      0.000000  0.000000  1.000000        0.00000                         
-SCALE1      0.018002  0.000000  0.000000        0.00000                         
-SCALE2      0.000000  0.018002  0.000000        0.00000                         
-SCALE3      0.000000  0.000000  0.010455        0.00000                         
 MODEL        1                                                                  
 ATOM      1  N   ALA A   1      17.877  17.391   4.936  1.00 13.13           N  
 ATOM      2  CA  ALA A   1      17.221  17.084   6.181  1.00 12.45           C  
@@ -1032,5 +967,3 @@ HETATM  965  O   HOH A 204       6.324  23.888   5.366  0.40 34.03           O
 HETATM  966  O   HOH A 205      13.133  14.569  34.308  0.40 28.64           O  
 HETATM  967  O   HOH A 206      20.833   8.394   2.308  0.40 23.65           O  
 ENDMDL                                                                          
-MASTER        6    0    0    8    4    0    5    6  954    1    0    9          
-END                                                                             

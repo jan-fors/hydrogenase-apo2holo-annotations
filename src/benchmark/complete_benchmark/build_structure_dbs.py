@@ -25,7 +25,7 @@ def build_structure_dbs(directory : Path):
         os.makedirs(structure_db, exist_ok=True)
         structure_db = structure_db / Path('structureDB')
 
-        build_structure_db(train_dir, chain_dir, structure_db)
+        build_structure_db(train_dir, chain_dir, structure_db, jobs=8)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

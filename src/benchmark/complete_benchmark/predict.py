@@ -9,7 +9,16 @@ import subprocess
 from src.main import main
 from datetime import datetime
 
-def predict(directory : Path, f_radius : float, model : Path, model_dir: Path, search_type : str, tmp : Path):
+
+def predict(
+    directory: Path,
+    f_radius: float,
+    as_model: Path,
+    fes_model: Path,
+    model_dir: Path,
+    search_type: str,
+    tmp: Path,
+):
     """
     if a model dir is provided the folder structure should be kept:
         !!! MODEL DIR HAS TO EXIST LIKE THIS IN EVERY SUBSET !!!
@@ -21,24 +30,21 @@ def predict(directory : Path, f_radius : float, model : Path, model_dir: Path, s
 
     """
     # check whether model dir or model has to be predicted
-    if model is None and model_dir is None:
-        raise ValueError("Provide either model or model_dir")
-    
-    if model_dir != None: #predict dir
+    if model_dir != None:  # predict dir
         # if not os.path.exists(model_dir):
         #     raise ValueError("Model dir path does not exist")
         # create output dir path
-        out_path_per_subset = Path('out') / model_dir
+        out_path_per_subset = Path("out") / model_dir
         # iterate over subsets
         for subset in os.listdir(directory):
-            print(f"[{datetime.now()}]","Annotate", subset, "...")
+            print(f"[{datetime.now()}]", "Annotate", subset, "...")
 
             subset_path = directory / Path(str(subset))
-            db_dir = subset_path / Path('db')
-            structure_db_path = db_dir / Path('structureDB') / Path('structureDB')
-            fingerprint_db_dir_path = db_dir / Path('fingerprintDB')
+            db_dir = subset_path / Path("db")
+            structure_db_path = db_dir / Path("structureDB") / Path("structureDB")
+            fingerprint_db_dir_path = db_dir / Path("fingerprintDB")
 
-            test_dir = subset_path / Path('test')
+            test_dir = subset_path / Path("test")
 
             output_dir = subset_path / out_path_per_subset
             if not os.path.exists(output_dir):
@@ -63,39 +69,41 @@ def predict(directory : Path, f_radius : float, model : Path, model_dir: Path, s
                         test_structure_path = test_dir / Path(test_structure)
                         output = out_path / Path(test_structure.split(".")[0])
                         os.makedirs(output, exist_ok=True)
-                        main(input_path=test_structure_path,
+                        main(
+                            input_path=test_structure_path,
                             out=output,
                             tmp=tmp,
                             boltz=False,
-                            plot=True, 
+                            plot=True,
                             structure_db_path=structure_db_path,
                             fingerprint_db_path=fingerprint_db_dir_path,
                             search_type=search_type,
                             model=model_dir_path / Path(model),
-                            f_radius=f_radius)
+                            f_radius=f_radius,
+                        )
                     except (FileNotFoundError, subprocess.CalledProcessError) as e:
                         print(e)
 
-        
-    elif model != None: # predict with a single model
+    elif as_model != None and fes_model != None:  # predict with a single model
         timestamp = datetime.now().strftime("%Y%m%d")
 
-        model_name = model.stem
-        #runname = timestamp+ "__"+ model.parent.name +"__"+ 
-        runname = model_name +"__"+search_type+"__"+str(f_radius)
+        model_name = fes_model.stem
+        # runname = timestamp+ "__"+ model.parent.name +"__"+
+        runname = model_name + "__" + search_type + "__" + str(f_radius)
 
         for subset in os.listdir(directory):
             print("annotate", subset, "...")
             subset_path = directory / Path(str(subset))
-            db_dir = subset_path / Path('db')
-            structure_db_path = db_dir / Path('structureDB') / Path('structureDB')
-            fingerprint_db_dir_path = db_dir / Path('fingerprintDB')
+            db_dir = subset_path / Path("db")
+            structure_db_path = db_dir / Path("structureDB") / Path("structureDB")
+            fingerprint_db_dir_path = db_dir / Path("fingerprintDB")
+            chain_dir = db_dir/Path("single_chains")
+            test_dir = subset_path / Path("test")
 
-            test_dir = subset_path / Path('test')
+            as_model_absolut_path = fingerprint_db_dir_path / as_model
+            fes_model_absolut_path = fingerprint_db_dir_path / fes_model
 
-            model_absolut_path = fingerprint_db_dir_path / model
-
-            pred_dir = subset_path / Path('out') / Path(runname)
+            pred_dir = subset_path / Path("out") / Path(runname)
 
             for test_structure in os.listdir(test_dir):
                 try:
@@ -103,29 +111,52 @@ def predict(directory : Path, f_radius : float, model : Path, model_dir: Path, s
                     test_structure_path = test_dir / Path(test_structure)
                     output = pred_dir / Path(test_structure.split(".")[0])
                     os.makedirs(output, exist_ok=True)
-                    main(input_path=test_structure_path,
+                    main(
+                        input_path=test_structure_path,
                         out=output,
                         tmp=tmp,
                         boltz=False,
-                        plot=True, 
+                        plot=True,
                         structure_db_path=structure_db_path,
                         fingerprint_db_path=fingerprint_db_dir_path,
                         search_type=search_type,
-                        model=model_absolut_path,
-                        f_radius=f_radius)
+                        chain_dir=chain_dir,
+                        active_site_model=as_model_absolut_path,
+                        fes_model=fes_model_absolut_path,
+                        f_radius=f_radius,
+                    )
                 except (FileNotFoundError, subprocess.CalledProcessError) as e:
                     print(e)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     parser.add_argument("dir", type=Path)
     parser.add_argument("--f_radius", type=float, default=5.0)
-    parser.add_argument("--model", type=Path, default=None, help="Path inside the fingeprintDB directory to the model that should be used")
-    parser.add_argument("--model_dir", type=Path, default=None, help="Directory containing multiple model files")
+    parser.add_argument(
+        "--as_model",
+        type=Path,
+        default=None,
+        help="Path inside the fingeprintDB directory to the model that should be used",
+    )
+    parser.add_argument(
+        "--fes_model",
+        type=Path,
+        default=None,
+        help="Path inside the fingeprintDB directory to the model that should be used",
+    )
+    parser.add_argument(
+        "--model_dir",
+        type=Path,
+        default=None,
+        help="Directory containing multiple model files",
+    )
     parser.add_argument("--search_type", type=str, choices=["sum", "mc"], default="sum")
     parser.add_argument("--tmp", type=Path, default=Path("tmp"))
 
     args = parser.parse_args()
 
-    predict(args.dir, args.f_radius, args.model, args.model_dir, args.search_type, args.tmp)
+    predict(
+        args.dir, args.f_radius, args.as_model, args.fes_model, args.model_dir, args.search_type, args.tmp
+    )

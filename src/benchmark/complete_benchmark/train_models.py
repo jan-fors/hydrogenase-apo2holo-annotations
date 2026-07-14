@@ -5,6 +5,7 @@ Create a list of params for the models and generate all of them to check afterwa
 
 Allow to generate multiple models sampling from a distribution of parameters for RandomizedCV
 """
+
 import os
 from pathlib import Path
 import argparse
@@ -16,6 +17,7 @@ from sklearn.preprocessing import StandardScaler
 from scipy.stats import loguniform, uniform, randint
 
 import warnings
+
 warnings.filterwarnings("ignore", module="sklearn")
 
 from sklearn.neural_network import MLPClassifier
@@ -25,76 +27,27 @@ from sklearn.linear_model import LogisticRegression
 
 RANDOM_STATE = 161
 # CAUTION: if svm is used include: probablity = True
-MODEL = MLPClassifier(random_state=RANDOM_STATE) # insert model
+MODEL = MLPClassifier(random_state=RANDOM_STATE)  # insert model
 PARAMS = {
-    # fill with model specific params. Example: 
-    # "clf__solver": "adam"
-"clf__hidden_layer_sizes":(512, 256, 128),
-"clf__activation":"logistic",
-"clf__solver":"adam",
-"clf__alpha":2.7019570942233988e-05,
-"clf__batch_size":"auto",
-"clf__learning_rate":"constant",
-"clf__learning_rate_init":0.0002173312338134643,
-"clf__power_t":0.5,
-"clf__max_iter":608,
-"clf__shuffle":True,
-"clf__random_state":161,
-"clf__tol":0.0002159629929642013,
-"clf__verbose":False,
-"clf__warm_start":False,
-"clf__momentum":0.5502222483731583,
-"clf__nesterovs_momentum":True,
-"clf__early_stopping":False,
-"clf__validation_fraction":0.1374337930471308,
-"clf__beta_1":0.959311567485037,
-"clf__beta_2":0.9590358482707659,
-"clf__epsilon":1e-08,
-"clf__n_iter_no_change":10,
-"clf__max_fun":15000,
-}
+    'clf__activation': 'relu',
+    'clf__alpha': np.float64(0.0072349310782850096),
+    'clf__batch_size': 128,
+    'clf__beta_1': np.float64(0.9014878985254476),
+    'clf__beta_2': np.float64(0.9911840289428955),
+    'clf__hidden_layer_sizes': (256, 128, 64),
+    'clf__learning_rate': 'invscaling',
+    'clf__learning_rate_init': np.float64(0.008589062084956335),
+    'clf__max_iter': 708,
+    'clf__momentum': np.float64(0.7282085760409726),
+    'clf__solver': 'adam',
+    'clf__tol': np.float64(3.200280851029404e-05),
+    'clf__validation_fraction': np.float64(0.1608894257116988)
+    }
 
 PARAM_DISTRIBUTION = {
-    "clf__hidden_layer_sizes":  [(64,), (128,), (256,),
-                                 (64, 32), (128, 64), (256, 128),
-                                 (128, 64, 32), (256, 128, 64),
-                                 (512, 256, 128)],
-    "clf__activation":          ["relu", "relu", "relu", "tanh", "logistic"],
-    "clf__solver":              ["adam", "adam", "adam", "sgd"],
-    "clf__alpha":               loguniform(1e-5, 1e-1),
-    "clf__learning_rate":       ["constant", "adaptive", "invscaling"],
-    "clf__learning_rate_init":  loguniform(1e-4, 1e-1),
-    "clf__max_iter":            randint(200, 1000),
-    "clf__tol":                 loguniform(1e-5, 1e-2),
-    "clf__early_stopping":      [False],
-    "clf__validation_fraction": uniform(0.1, 0.2),
-    "clf__batch_size":          [32, 64, 128, 256, "auto"],
-    "clf__momentum":            uniform(0.5, 0.45),
-    "clf__beta_1":              uniform(0.85, 0.14),
-    "clf__beta_2":              uniform(0.9, 0.099)
-    # "clf__n_estimators": randint(100, 1000),
-    #     "clf__max_depth": [None, 5, 10, 20, 30, 50],
-    #     "clf__min_samples_split": randint(2, 20),
-    #     "clf__min_samples_leaf": randint(1, 10),
-    #     "clf__max_features": ["sqrt", "log2", None],
-    #     "clf__class_weight": [None, "balanced"],
-    #     "clf__bootstrap": [True, False],
-    #   #  "clf__max_samples": uniform(0.5, 0.5),
-    #   "clf__C":               loguniform(1e-3, 1e4),
-    # "clf__kernel":          ["rbf", "rbf", "rbf", "linear", "poly", "sigmoid"],
-    # "clf__gamma":           ["scale", "auto"] + list(loguniform(1e-4, 1e1).rvs(20)),
-    # "clf__degree":          randint(2, 6),
-    # "clf__coef0":           uniform(0, 10),
-    # "clf__class_weight":    [None, "balanced"],
-    # "clf__tol":             loguniform(1e-5, 1e-2),
-    # "clf__shrinking":       [True, False],"clf__C":               loguniform(1e-4, 1e4),
-    # "clf__l1_ratio":        uniform(0, 1),
-    # "clf__solver":          ["saga"],
-    # "clf__max_iter":        randint(200, 2000),
-    # "clf__fit_intercept":   [True, False],
-    # "clf__class_weight":    [None, "balanced"],
-    # "clf__tol":             loguniform(1e-6, 1e-2),
+    
 }
+
 
 def get_pipeline():
     """ """
@@ -107,6 +60,7 @@ def get_pipeline():
     )
     return pipe
 
+
 def draw_params():
     sample = {}
     for key, dist in PARAM_DISTRIBUTION.items():
@@ -116,6 +70,7 @@ def draw_params():
             sample[key] = dist.rvs()
     return sample
 
+
 def draw_unique(drawn, max_tries=100):
     for _ in range(max_tries):
         sample = draw_params()
@@ -124,7 +79,14 @@ def draw_unique(drawn, max_tries=100):
             return sample
     raise ValueError("Could not draw a unique sample after max_tries")
 
-def train_models(directory : Path, fingerprinttsv_name : str, model_name : str, model_dir_name : str, iter : int):
+
+def train_models(
+    directory: Path,
+    fingerprinttsv_name: str,
+    model_name: str,
+    model_dir_name: str,
+    iter: int,
+):
     previous_params = []
     for i in range(iter):
         print("Iteration", i)
@@ -132,48 +94,88 @@ def train_models(directory : Path, fingerprinttsv_name : str, model_name : str, 
 
         i_model_name = model_name + "__" + str(i)
 
-        train_model(directory, fingerprinttsv_name, i_model_name, model_dir_name, params)
+        train_model(
+            directory, fingerprinttsv_name, i_model_name, model_dir_name, params
+        )
 
-def train_model(directory : Path, finerprinttsv_name : str, model_name : str, model_dir_name : str,  params : dict):
+
+def train_model(
+    directory: Path,
+    finerprinttsv_name: str,
+    model_name: str,
+    model_dir_name: str,
+    params: dict,
+    type : str
+):
+    """ """
     for subset in os.listdir(directory):
         print("train model in", subset, "...")
         subset_path = directory / Path(str(subset))
-        fingeprint_db_path = subset_path / Path('db') / Path('fingerprintDB')
+        fingeprint_db_path = subset_path / Path("db") / Path("fingerprintDB")
         if model_dir_name != None:
             model_dir_name_path = fingeprint_db_path / Path(model_dir_name)
             os.makedirs(model_dir_name_path, exist_ok=True)
         else:
             model_dir_name_path = fingeprint_db_path
         fingerprint_tsv_path = fingeprint_db_path / Path(finerprinttsv_name)
+
+        df = pd.read_csv(fingerprint_tsv_path, sep="\t")
         
-        
-        db = pd.read_csv(fingerprint_tsv_path, sep="\t")
+        Y = df["formula"]
+
         # prep X and y
-        try:
-            X = db.drop(columns=['formula', 'id', 'smiles', 'res_name'])
-        except Exception as e:
-            print(e)
-            try:
-                 X = db.drop(columns=['formula'])
-            except Exception as e:
-                print(e)
-        X_np = X.to_numpy()
+        if "formula" in df.columns:
+            df = df.drop(columns="formula")
+        if "id" in df.columns:
+            df = df.drop(columns="id")
+        if "smiles" in df.columns:
+            df = df.drop(columns="smiles")
+        if "res_name" in df.columns:
+            df = df.drop(columns="res_name")
+        X = df
 
-        Y = db["formula"]
+        X = X.fillna(0)
+
+        X = X.to_numpy()
+
         
-        # define model
-        model = get_pipeline()
-        model.set_params(**params)
 
-        # fit model
-        model.fit(X, Y)
+        # as model
+        if type == "fes":
+             # fes model
+            fes_Y = Y
+            for i, val in fes_Y.items():
+                if val == "active_site":
+                    fes_Y.iloc[i] = "protein"
 
-        # save model 
-        ## if modelname already exists override
-        model_output_path = model_dir_name_path / Path(model_name + ".pkl")
-        with open(model_output_path, "wb") as f:
-            pickle.dump(model, f)
+            fes_model = get_pipeline()
+            fes_model.set_params(**params)
 
+            fes_model.fit(X, fes_Y)
+
+            fes_model_output_path = model_dir_name_path / Path("fes_" + model_name + ".pkl")
+            with open(fes_model_output_path, "wb") as f:
+                pickle.dump(fes_model, f)
+        else:
+            as_Y = Y
+            for i, val in as_Y.items():
+                if val != "protein" and val != "active_site":
+                    as_Y.iloc[i] = "protein"
+
+            # define model
+            as_model = get_pipeline()
+            as_model.set_params(**params)
+
+            # fit model
+            as_model.fit(X, as_Y)
+            
+            # save model
+            ## if modelname already exists override
+            as_model_output_path = model_dir_name_path / Path("as_" + model_name + ".pkl")
+            with open(as_model_output_path, "wb") as f:
+                pickle.dump(as_model, f)
+
+        
 
 
 if __name__ == "__main__":
@@ -183,14 +185,30 @@ if __name__ == "__main__":
     parser.add_argument("fingerprinttsv_name", type=str)
     parser.add_argument("model_name", type=str)
     parser.add_argument("--model_dir_name", type=str, default=None)
-    parser.add_argument("--parameter_grid", action="store_true") # save all models with name_00X and save a extra file that contains name-param pairs
+    parser.add_argument(
+        "--parameter_grid", action="store_true"
+    )  # save all models with name_00X and save a extra file that contains name-param pairs
     parser.add_argument("--iter", type=int, default=1)
+    parser.add_argument("--type", choices=["fes", "as"], default="fes")
 
     args = parser.parse_args()
 
     if args.parameter_grid:
         if args.model_dir_name == None:
             raise ValueError("Need to define model_dir_name")
-        train_models(args.dir, args.fingerprinttsv_name, args.model_name, args.model_dir_name, args.iter)
+        train_models(
+            args.dir,
+            args.fingerprinttsv_name,
+            args.model_name,
+            args.model_dir_name,
+            args.iter,
+        )
     else:
-        train_model(args.dir, args.fingerprinttsv_name, args.model_name, args.model_dir_name, PARAMS)
+        train_model(
+            args.dir,
+            args.fingerprinttsv_name,
+            args.model_name,
+            args.model_dir_name,
+            PARAMS,
+            args.type
+        )
