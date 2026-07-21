@@ -47,7 +47,7 @@ import warnings
 warnings.simplefilter("ignore", PDBConstructionWarning)
 warnings.filterwarnings("ignore", message="X does not have valid feature names")
 
-create_fingerprint = create_complete_fingerprint
+create_fingerprint = create_aa_ac_combined_fingerprint
 
 
 
@@ -67,8 +67,12 @@ class FingerprintDB:
         self.as_mlp_classifier_model_path = os.path.join(
             str(db_directory), "as_mlp_classifier_model.pkl"
         )
-        self.fes_mlp_classifier_model_path = os.path.join(
-            str(db_directory), "fes_mlp_classifier_model.pkl"
+        self.fes_type_mlp_classifier_model_path = os.path.join(
+            str(db_directory), "fes_type_mlp_classifier_model.pkl"
+        )
+
+        self.fes_pocket_mlp_classifier_model_path = os.path.join(
+            str(db_directory), "fes_pocket_mlp_classifier_model.pkl"
         )
 
         self.as_svm_model_path = os.path.join(str(db_directory), "as_svm_model.pkl")
@@ -107,9 +111,14 @@ class FingerprintDB:
             self.as_mlp_classifier_model = CustomMLPClassifier().load(
                 self.as_mlp_classifier_model_path
             )
-        if os.path.exists(self.fes_mlp_classifier_model_path):
-            self.fes_mlp_classifier_model = CustomMLPClassifier().load(
-                self.fes_mlp_classifier_model_path
+        if os.path.exists(self.fes_type_mlp_classifier_model_path):
+            self.fes_type_mlp_classifier_model = CustomMLPClassifier().load(
+                self.fes_type_mlp_classifier_model_path
+            )
+
+        if os.path.exists(self.fes_pocket_mlp_classifier_model_path):
+            self.fes_pocket_mlp_classifier_model = CustomMLPClassifier().load(
+                self.fes_pocket_mlp_classifier_model_path
             )
 
         # svm model
@@ -163,7 +172,8 @@ class FingerprintDB:
 
             # mlp
             self.as_mlp_classifier_model.save(self.as_mlp_classifier_model_path)
-            self.fes_mlp_classifier_model.save(self.fes_mlp_classifier_model_path)
+            self.fes_type_mlp_classifier_model.save(self.fes_type_mlp_classifier_model_path)
+            self.fes_pocket_mlp_classifier_model.save(self.fes_pocket_mlp_classifier_model_path)
 
             # # random forest
             # self.as_random_forest_model.save(self.as_random_forest_model_path)
@@ -219,7 +229,7 @@ class FingerprintDB:
                 printl("Use valid earch option. [logreg, absolut]")
                 return []
 
-    def fes_search(
+    def fes_type_search(
         self,
         F: dict,
         search_type: Literal[
@@ -256,7 +266,53 @@ class FingerprintDB:
             elif search_type == "svm":
                 return self.fes_svm_model.predict(F)
             elif search_type == "mlp":
-                return self.fes_mlp_classifier_model.predict(F)
+                return self.fes_type_mlp_classifier_model.predict(F)
+            elif search_type == "randforest":
+                return self.fes_random_forest_model.predict(F)
+            # elif search_type == "nn":
+            #     return self._nn_predict(F)
+            else:
+                printl("Use valid earch option. [logreg, absolut]")
+                return []
+
+    def fes_pocket_search(
+        self,
+        F: dict,
+        search_type: Literal[
+            "logreg", "absolut", "svm", "mlp", "nn", "randforest", None, "sum", "mc"
+        ],
+        model: Path = None,
+    ) -> list:
+        """
+        Return:
+            TODO return the same type
+        """
+        if search_type == "sum" or search_type == "mc" or search_type == None:
+            ################ TODO REMOVE AFTER BENCHMARKING ################
+            # load model
+            if os.path.exists(model):
+                printl(f"Loading model from {model}")
+                with open(model, "rb") as f:
+                    smodel = pickle.load(f)
+            else:
+                raise ValueError(f"{model} does not exist.")
+            # predict
+            proba = smodel.predict_proba(F)
+
+            class_names = smodel.classes_
+
+            output = [{cls: p for cls, p in zip(class_names, row)} for row in proba]
+            return output
+            ################ TODO REMOVE AFTER BENCHMARKING ################
+        else:
+            if search_type == "logreg":
+                return self.fes_logistic_regression_model.predict(F)
+            elif search_type == "absolut":
+                return self.fes_absolut_search_engine.predict(F)
+            elif search_type == "svm":
+                return self.fes_svm_model.predict(F)
+            elif search_type == "mlp":
+                return self.fes_pocket_mlp_classifier_model.predict(F)
             elif search_type == "randforest":
                 return self.fes_random_forest_model.predict(F)
             # elif search_type == "nn":
@@ -296,6 +352,13 @@ class FingerprintDB:
                 df = df.drop(columns="smiles")
             if "res_name" in df.columns:
                 df = df.drop(columns="res_name")
+            if "type" in df.columns:
+                df = df.drop(columns="type")
+            if "aug_dist" in df.columns:
+                df = df.drop(columns="aug_dist")
+            if "structure" in df.columns:
+                df = df.drop(columns="structure")
+            
             X = df
             X_np = X.to_numpy()
 
@@ -326,12 +389,14 @@ class FingerprintDB:
             # self.as_random_forest_model = CustomRandomForestClassifier()
             # self.as_random_forest_model.train(X_np, Y)
 
-            # train fes models
+            # train fes pocket models
             Y = self.db["formula"]
 
             for i, val in Y.items():
                 if val == "active_site":
                     Y.iloc[i] = "protein"
+                elif val == "3FE4S" or val == "4FE4S" or val == "4FE3S":
+                    Y.iloc[i] = "fes_pocket"
 
             # # train_log_reg
             # self.fes_logistic_regression_model = LogisticRegressionModel()
@@ -342,12 +407,44 @@ class FingerprintDB:
             # self.fes_svm_model.train(X_np, Y)
 
             # train mlp classifier
-            self.fes_mlp_classifier_model = CustomMLPClassifier()
-            self.fes_mlp_classifier_model.train(X_np, Y)
+            self.fes_pocket_mlp_classifier_model = CustomMLPClassifier()
+            self.fes_pocket_mlp_classifier_model.train(X_np, Y)
 
             # # train random forest model
             # self.fes_random_forest_model = CustomRandomForestClassifier()
             # self.fes_random_forest_model.train(X_np, Y)
+
+            
+            
+            # fes type model
+            # 1. filter df
+            keep = ["3FE4S", "4FE4S", "4FE3S"]
+            df = self.db[self.db.formula.isin(keep)]
+            
+            Y = df["formula"]
+
+            if "formula" in df.columns:
+                df = df.drop(columns="formula")
+            if "id" in df.columns:
+                df = df.drop(columns="id")
+            if "smiles" in df.columns:
+                df = df.drop(columns="smiles")
+            if "res_name" in df.columns:
+                df = df.drop(columns="res_name")
+            if "type" in df.columns:
+                df = df.drop(columns="type")
+            if "aug_dist" in df.columns:
+                df = df.drop(columns="aug_dist")
+            if "structure" in df.columns:
+                df = df.drop(columns="structure")
+            
+            X = df
+            X_np = X.to_numpy()
+
+            self.fes_type_mlp_classifier_model = CustomMLPClassifier()
+            self.fes_type_mlp_classifier_model.train(X_np, Y)
+
+
 
     def _load_databasefile(self, db_path: Path):
         """ """
@@ -544,7 +641,7 @@ class FingerprintDB:
             for center in centers:
 
                 # create Fingerprint
-                F = create_fingerprint(structure_path, center[0])
+                F = create_fingerprint(structure_path, center[0], f_radius)
                 F_dict = {i: value for i, value in enumerate(F)}
                 F_dict["aug_dist"] = center[1]
                 F_dict["structure"] = structure
@@ -602,7 +699,7 @@ class FingerprintDB:
                     >= MIN_DIST_ARTIFICAL_SAMPLES
                     for o in cofactors.keys()
                 ):
-                    F = create_fingerprint(structure_path, sample)
+                    F = create_fingerprint(structure_path, sample, f_radius)
                     F_dict = {i: value for i, value in enumerate(F)}
                     F_dict["aug_dist"] = 0.0
                     F_dict["structure"] = structure
@@ -623,7 +720,7 @@ class FingerprintDB:
                 background_centers = self._fibonacci_sphere(g_center, f_radius, AMOUNT_ARTIFICAL_SAMPLES)
                 
                 for bc in background_centers:
-                    F = create_fingerprint(structure_path, bc)
+                    F = create_fingerprint(structure_path, bc, f_radius)
                     F_dict = {i: value for i, value in enumerate(F)}
                     F_dict["aug_dist"] = 0.0
                     F_dict["structure"] = structure

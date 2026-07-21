@@ -14,7 +14,8 @@ STRUCTURE_DIR =     Path("db/single_chains")
 
 FINGERPRINT_DB =    Path("db/fingerprintDB") 
 ACTIVE_SITE_MODEL = Path("db/fingerprintDB/as_mlp_classifier_model.pkl")
-FES_MODEL =         Path("db/fingerprintDB/fes_mlp_classifier_model.pkl")
+FES_TYPE_MODEL =    Path("db/fingerprintDB/fes_mlp_classifier_model.pkl")
+FES_POCKET_MODEL =  Path("db/fingerprintDB/fes_pocket_model.pkl")
 
 TMP =               Path("tmp")
 
@@ -45,7 +46,7 @@ NN_CLUSTERING_RADIUS =  4.0
 
 FOLDSEEK_OUT_FORMAT =   "query,target,fident,alnlen,mismatch,gapopen,qstart,qend,tstart,tend,evalue,bits,u,t"
 FIDENT_THRESHOLD =      0.1
-BITS_THRESHOLD =        500
+BITS_THRESHOLD =        0
 
 # fingerprint
 FINGERPRINT_RADIUS =    6.0
@@ -64,9 +65,9 @@ SEARCH_TYPE =           "mlp_sum"   #"absolut", "logreg_sum", "svm_sum", "svm_mc
 
 # build
 AMOUNT_ARTIFICAL_SAMPLES =      12
-MIN_DIST_ARTIFICAL_SAMPLES =    6.0
+MIN_DIST_ARTIFICAL_SAMPLES =    4.0
 
-AUGMENTATION_RADIUS =           4.0
+AUGMENTATION_RADIUS =           2.0
 N_AUGMENTATIONS =               12
 
 # models TODO write one active site and one fes model later

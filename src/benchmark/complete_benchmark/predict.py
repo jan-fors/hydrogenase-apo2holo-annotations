@@ -14,7 +14,8 @@ def predict(
     directory: Path,
     f_radius: float,
     as_model: Path,
-    fes_model: Path,
+    fes_type_model: Path,
+    fes_pocket_model: Path,
     model_dir: Path,
     search_type: str,
     tmp: Path,
@@ -84,12 +85,12 @@ def predict(
                     except (FileNotFoundError, subprocess.CalledProcessError) as e:
                         print(e)
 
-    elif as_model != None and fes_model != None:  # predict with a single model
-        timestamp = datetime.now().strftime("%Y%m%d")
+    elif as_model != None and fes_type_model != None and fes_pocket_model != None:  # predict with a single model
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
-        model_name = fes_model.stem
+        model_name = fes_type_model.stem
         # runname = timestamp+ "__"+ model.parent.name +"__"+
-        runname = model_name + "__" + search_type + "__" + str(f_radius)
+        runname = str(timestamp) + "__" + model_name + "__" + search_type + "__" + str(f_radius)
 
         for subset in os.listdir(directory):
             print("annotate", subset, "...")
@@ -101,7 +102,8 @@ def predict(
             test_dir = subset_path / Path("test")
 
             as_model_absolut_path = fingerprint_db_dir_path / as_model
-            fes_model_absolut_path = fingerprint_db_dir_path / fes_model
+            fes_type_model_absolut_path = fingerprint_db_dir_path / fes_type_model
+            fes_pocket_model_absolut_path = fingerprint_db_dir_path / fes_pocket_model
 
             pred_dir = subset_path / Path("out") / Path(runname)
 
@@ -122,7 +124,8 @@ def predict(
                         search_type=search_type,
                         chain_dir=chain_dir,
                         active_site_model=as_model_absolut_path,
-                        fes_model=fes_model_absolut_path,
+                        fes_type_model=fes_type_model_absolut_path,
+                        fes_pocket_model=fes_pocket_model_absolut_path,
                         f_radius=f_radius,
                     )
                 except (FileNotFoundError, subprocess.CalledProcessError) as e:
@@ -141,7 +144,13 @@ if __name__ == "__main__":
         help="Path inside the fingeprintDB directory to the model that should be used",
     )
     parser.add_argument(
-        "--fes_model",
+        "--fes_type_model",
+        type=Path,
+        default=None,
+        help="Path inside the fingeprintDB directory to the model that should be used",
+    )
+    parser.add_argument(
+        "--fes_pocket_model",
         type=Path,
         default=None,
         help="Path inside the fingeprintDB directory to the model that should be used",
@@ -158,5 +167,5 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     predict(
-        args.dir, args.f_radius, args.as_model, args.fes_model, args.model_dir, args.search_type, args.tmp
+        args.dir, args.f_radius, args.as_model, args.fes_type_model, args.fes_pocket_model, args.model_dir, args.search_type, args.tmp
     )
