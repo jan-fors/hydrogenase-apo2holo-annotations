@@ -4,7 +4,7 @@ import subprocess
 
 def extract_chain(input_pdb: str, output_dir: str, chain: str):
     """ """
-    structure_name = os.path.basename(input_pdb).split(".")[0] + f"-{chain}.pdb"
+    structure_name = os.path.basename(input_pdb).split(".")[0] + f"_{chain}.pdb"
     outpath = Path(os.path.join(output_dir, structure_name))
     cmd = ["pdb_selchain", f"-{chain}", str(input_pdb)]
 

@@ -36,7 +36,7 @@ def build_fingerprint_base(directory: Path, f_radius: float, jobs: int, name : s
             input_directory=train_dir,
             f_radius=f_radius,
             train_models=False,
-            extend_background_samples=False,
+            extend_background_samples=True,
             cofactor_augmentation=True,
             threads=jobs,
         )

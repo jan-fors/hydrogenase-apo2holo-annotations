@@ -2,6 +2,12 @@
 Script that performs a HalvinRandomSearchCV to find the best params and check with a k-fold cv on the training dataset.
 Returns a final accuracy on an unseen testset
 """
+import os
+os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["OPENBLAS_NUM_THREADS"] = "1"
+os.environ["MKL_NUM_THREADS"] = "1"
+os.environ["NUMEXPR_NUM_THREADS"] = "1"
+os.environ["VECLIB_MAXIMUM_THREADS"] = "1" 
 
 # IMPORTS
 from sklearn.model_selection import train_test_split, cross_val_score
@@ -67,7 +73,7 @@ def get_param_distributions():
     "clf__alpha":               loguniform(1e-5, 1e-1),
     "clf__learning_rate":       ["constant", "adaptive", "invscaling"],
     "clf__learning_rate_init":  loguniform(1e-4, 1e-2),
-    "clf__max_iter":            randint(200, 1000),
+    "clf__max_iter":            randint(700, 1000),
     "clf__tol":                 loguniform(1e-5, 1e-2),
 #    "clf__early_stopping":      [True],
     "clf__validation_fraction": uniform(0.1, 0.2),
@@ -79,7 +85,7 @@ def get_param_distributions():
     return param_distributions_mlp
 
 
-def prepare_data(data: Path, test_size: float, random_state: int, type : str):
+def prepare_data(data: Path, random_state: int, type : str):
     """ """
     df = pd.read_csv(data, sep="\t")
     printl("Read data...")
@@ -90,32 +96,63 @@ def prepare_data(data: Path, test_size: float, random_state: int, type : str):
         df.drop("res_name", axis=1, inplace=True)
     if "smiles" in df.columns:
         df.drop("smiles", axis=1, inplace=True)
-
+    if "type" in df.columns:
+        df = df.drop(columns="type")
+    if "aug_dist" in df.columns:
+        df = df.drop(columns="aug_dist")
+    if "structure" in df.columns:
+        df = df.drop(columns="structure")
     if "fingerprint" in df.columns:
         df.drop("fingerprint", axis=1, inplace=True)
     df = df[~df["formula"].isin(COFACTOR_BLACKLIST)].copy()
     df.reset_index(drop=True, inplace=True)
 
-    X = df.drop("formula", axis=1)
-    X = X.fillna(0)
     
+    
+    if type == "fes":
+        keep = ["3FE4S", "4FE4S", "4FE3S"]
+        df = df[df.formula.isin(keep)]
+        
+        Y = df["formula"]
 
-    y = df["formula"]
-    Y = []
-    if type == "as":
-        for i in y:
-            if i != "protein" and i != "active_site":
-                Y.append("protein")
-            else:
-                Y.append(i)
+        if "formula" in df.columns:
+            df = df.drop(columns="formula")
+        if "id" in df.columns:
+            df = df.drop(columns="id")
+        if "smiles" in df.columns:
+            df = df.drop(columns="smiles")
+        if "res_name" in df.columns:
+            df = df.drop(columns="res_name")
+        if "type" in df.columns:
+            df = df.drop(columns="type")
+        if "aug_dist" in df.columns:
+            df = df.drop(columns="aug_dist")
+        if "structure" in df.columns:
+            df = df.drop(columns="structure")
+        
+        X = df
+
     else:
-        for i in y:
-            if i == "active_site":
-                Y.append("protein")
-            else:
-                Y.append(i)  
-    
-    Y = pd.Series(Y)
+        X = df.drop("formula", axis=1)
+        X = X.fillna(0)
+        y = df["formula"]
+        Y = []
+        if type == "as":
+            for i in y:
+                if i != "protein" and i != "active_site":
+                    Y.append("protein")
+                else:
+                    Y.append(i)
+        else:
+            for i in y:
+                if i == "active_site":
+                    Y.append("protein")
+                elif i == "3FE4S" or i == "4FE4S" or i == "4FE3S":
+                    Y.append("fes_pocket")
+                else:
+                    Y.append("protein")  
+        
+        Y = pd.Series(Y)
     return X, Y
 
 
@@ -129,7 +166,7 @@ def bench(data, random_state, test_size, scoring, jobs, k, n_iter, type):
     printl(f"CV={k}")
     printl(f"Iterations={n_iter}")
 
-    X, y = prepare_data(data, test_size, random_state, type)
+    X, y = prepare_data(data, random_state, type)
 
     # initial split
     X_train, X_test, y_train, y_test = train_test_split(
@@ -207,7 +244,7 @@ def bench(data, random_state, test_size, scoring, jobs, k, n_iter, type):
     out_dir = data.parent / Path("models")
     out_dir.mkdir(exist_ok=True)
     stamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    model_path = out_dir / f"mlp_{type}_data{dataname}_rs{random_state}_{stamp}.pkl"
+    model_path = out_dir / f"mlp_{type}_data_{dataname}_rs{random_state}_{stamp}.pkl"
 
     with open(model_path, "wb") as f:
         pickle.dump(final_model, f)
@@ -229,13 +266,13 @@ if __name__ == "__main__":
         "--scoring", choices=["accuracy", "f1_weighted", "f1_macro"], default="f1_macro"
     )
     parser.add_argument(
-        "--jobs", type=int, default=1, help="Number of parallel Threads"
+        "--jobs", type=int, default=1, help="Number of parallel Threads. [1]"
     )
     parser.add_argument(
-        "--k", type=int, default=5, help="Amount of Cross Validation Rounds"
+        "--k", type=int, default=5, help="Amount of Cross Validation Rounds. [5]"
     )
-    parser.add_argument("--n-iter", type=int, default=10, help="Number of iterations")
-    parser.add_argument("--type", choices=["fes", "as"], default="as")
+    parser.add_argument("--n-iter", type=int, default=10, help="Number of iterations. [10]")
+    parser.add_argument("--type", choices=["fes", "as", "fes_pocket"], default="as")
     args = parser.parse_args()
 
     bench(

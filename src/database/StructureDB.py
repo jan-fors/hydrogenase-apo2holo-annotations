@@ -60,9 +60,6 @@ class StructureDB:
             cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=True
         )
 
-        printl(result.stdout)
-        printl(result.stderr)
-
         return output_path
 
     def build_db(

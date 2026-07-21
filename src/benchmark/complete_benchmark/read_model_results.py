@@ -29,23 +29,28 @@ def read_model_results(directory : Path, model : Path, output_dir : Path):
                 hyd_results["hyd"] = [hyd]
                 results_path = model_results / Path(hyd) / Path("results.json")
 
-                with open(results_path, "r") as f:
-                    data = json.loads(f.read())
-                    
-                if "proximal" in data.keys():
-                    hyd_results["proximal"] = [data["proximal"][0]["predicted_class"]]
-                else:
+                if not os.path.exists(results_path):
                     hyd_results["proximal"] = ["n"]
-
-                if "medial" in data.keys():
-                    hyd_results["medial"] = [data["medial"][0]["predicted_class"]]
-                else:
                     hyd_results["medial"] = ["n"]
-
-                if "distal" in data.keys():
-                    hyd_results["distal"] = [data["distal"]["predicted_class"]]
-                else:
                     hyd_results["distal"] = ["n"]
+                else:
+                    with open(results_path, "r") as f:
+                        data = json.loads(f.read())
+                        
+                    if "proximal" in data.keys():
+                        hyd_results["proximal"] = [data["proximal"][0]["predicted_class"]]
+                    else:
+                        hyd_results["proximal"] = ["n"]
+
+                    if "medial" in data.keys():
+                        hyd_results["medial"] = [data["medial"][0]["predicted_class"]]
+                    else:
+                        hyd_results["medial"] = ["n"]
+
+                    if "distal" in data.keys():
+                        hyd_results["distal"] = [data["distal"]["predicted_class"]]
+                    else:
+                        hyd_results["distal"] = ["n"]
 
                 res = pd.concat([res, pd.DataFrame(hyd_results)], ignore_index = True)    
 

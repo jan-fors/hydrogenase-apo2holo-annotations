@@ -8,7 +8,8 @@ from src.utils.constants import (
     SEARCH_TYPE,
     STRUCTURE_DIR,
     FINGERPRINT_RADIUS,
-    FES_MODEL,
+    FES_POCKET_MODEL,
+    FES_TYPE_MODEL,
     ACTIVE_SITE_MODEL,
 )
 
@@ -29,10 +30,15 @@ def _extract_args(args):
     else:
         active_site_model = None
 
-    if args.fes_model != None:
-        fes_model = Path(args.fes_model)
+    if args.fes_type_model != None:
+        fes_type_model = Path(args.fes_type_model)
     else:
-        fes_model = None
+        fes_type_model = None
+
+    if args.fes_pocket_model != None:
+        fes_pocket_model = Path(args.fes_pocket_model)
+    else:
+        fes_pocket_model = None
 
     return (
         Path(args.input_path),
@@ -45,7 +51,8 @@ def _extract_args(args):
         Path(args.fingerprint_db_path),
         args.search_type,
         active_site_model,
-        fes_model,
+        fes_type_model,
+        fes_pocket_model,
         args.f_radius,
         args.chain_dir,
     )
@@ -68,7 +75,8 @@ def cli(args):
         fingerprint_db_path,
         search_type,
         active_site_model,
-        fes_model,
+        fes_type_model,
+        fes_pocket_model,
         f_radius,
         chain_dir,
     ) = _extract_args(args)
@@ -87,7 +95,8 @@ def cli(args):
         fingerprint_db_path=fingerprint_db_path,
         search_type=search_type,
         active_site_model=active_site_model,
-        fes_model=fes_model,
+        fes_type_model=fes_type_model,
+        fes_pocket_model=fes_pocket_model,
         f_radius=f_radius,
         chain_dir=chain_dir,
     )
@@ -125,7 +134,8 @@ if __name__ == "__main__":
     )
     parser.add_argument("--search_type", type=str, default=SEARCH_TYPE)
     parser.add_argument("--active_site_model", type=Path, default=ACTIVE_SITE_MODEL)
-    parser.add_argument("--fes_model", type=Path, default=FES_MODEL)
+    parser.add_argument("--fes_type_model", type=Path, default=FES_TYPE_MODEL)
+    parser.add_argument("--fes_pocket_model", type=Path, default=FES_POCKET_MODEL)
     parser.add_argument("--f_radius", type=float, default=FINGERPRINT_RADIUS)
     parser.add_argument("--chain_dir", type=Path, default=STRUCTURE_DIR)
 
