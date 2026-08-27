@@ -94,7 +94,6 @@ def _build_amino_acid_only_structure(structure_path):
 
     return Atoms(symbols=symbols, positions=positions)
 
-
 def create_physiochemical_radial_angular(
     structure_path, point, fingerprint_radius=FINGERPRINT_RADIUS
 ):

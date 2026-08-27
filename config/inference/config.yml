@@ -1,0 +1,32 @@
+input_structure: path/to/input_structure # is usually defined by running cli.py
+output_folder: path/to/output_folder # is usually defined by running cli as well
+verbose : yes # defined by user as well
+
+models:
+  active_site:
+    path: path/to/active_site_model.pkl
+    search_type: mc
+  fes:
+    pocket:
+      path: path/to/fes_pocket_model.pkl
+      search_type: mc
+    type:
+      path: path/to/fes_type_model.pkl
+      search_type: mc
+  
+  # match inference fingerprint based on model
+  # read model fingerprint radius for specific tasks from model yamls as default ONLY mention in config if not usual
+  # search type as well
+
+fingerprint:
+  types:
+    - aa
+    - atom
+  radius: 6.0
+
+structure_db:
+  path: path/to/structure_db
+  chain_dir: path/to/chain_dir
+  nn_clustering_radius: 4.0
+  FIDENT_THRESHOLD: 0.1
+  BITS_THRESHOLD: 0
