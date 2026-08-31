@@ -2,7 +2,7 @@ from src.utils.constants import (
     COFACTOR_BLACKLIST
 )
 from pathlib import Path
-from src.io.printl import printl
+from src.io.writers.printl import printl
 import os
 
 def apply_blacklist_build(cofactors: dict[str, list[tuple[str, float, float, float]]]) -> dict[str, list[tuple[str, float, float, float]]]:

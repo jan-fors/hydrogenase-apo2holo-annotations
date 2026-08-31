@@ -4,9 +4,9 @@ Builds the databases in order to run the script
 
 import argparse
 import os
-from src.io.printl import printl
+from src.io.writers.printl import printl
 from pathlib import Path
-from src.database.StructureDB import StructureDB
+from src.database.structure.StructureDB import StructureDB
 from src.database.FingerprintDB import FingerprintDB
 
 
@@ -28,17 +28,10 @@ def parse_args(args):
             os.makedirs(structure_db_path, exist_ok=True)
         structure_db_path = os.path.join(structure_db_path, "structureDB")
 
-    fingerprint_db_path = args.fingerprint_db_path
-    if fingerprint_db_path:
-        if not os.path.exists(fingerprint_db_path):
-            printl(f"Creating parent folder {structure_db_path}")
-            os.makedirs(fingerprint_db_path, exist_ok=True)
-
     return (
         input_structure_dir,
         output_structure_dir,
         structure_db_path,
-        fingerprint_db_path,
         args.jobs,
     )
 
@@ -47,7 +40,6 @@ def build(
     input_structure_dir: Path,
     output_structure_dir: Path,
     structure_db_path: Path,
-    fingerprint_db_path: Path,
     jobs: int,
 ):
     """ """
@@ -55,9 +47,6 @@ def build(
     build_structure_db(
         input_structure_dir, output_structure_dir, structure_db_path, jobs
     )
-
-    # build fingerprint db
-    build_fingerprint_db(input_structure_dir, fingerprint_db_path, jobs)
 
 
 def build_structure_db(
@@ -67,22 +56,6 @@ def build_structure_db(
     structureDB = StructureDB()
 
     structureDB.build_db(raw_input_dir, chain_dir, structure_db_path, threads=jobs)
-
-
-def build_fingerprint_db(raw_input_dir: Path, fingerprint_db_path: Path, jobs: int):
-    """ """
-    fingerprintDB = FingerprintDB(fingerprint_db_path)
-
-    fingerprintDB.build_db(
-        input_directory=raw_input_dir,
-        extend_background_samples=True,
-        cofactor_augmentation=True,
-        f_radius=6.0,
-        train_models=True,
-        threads=jobs,
-    )
-
-    fingerprintDB.save(save_models=True)
 
 
 if __name__ == "__main__":
@@ -99,12 +72,6 @@ if __name__ == "__main__":
         help="Folder for the Structure DB",
         default=None,
     )
-    parser.add_argument(
-        "--fingerprint-db-path",
-        type=str,
-        help="Path to the fingerprint DB",
-        default=None,
-    )
     parser.add_argument("--jobs", type=int, help="Amount of cores", default=1)
     args = parser.parse_args()
 
@@ -119,6 +86,5 @@ if __name__ == "__main__":
         input_structure_dir,
         output_structure_dir,
         structure_db_path,
-        fingerprint_db_path,
         jobs,
     )

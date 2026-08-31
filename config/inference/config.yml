@@ -1,0 +1,27 @@
+input_structure: benchmarking/complete_benchmark/2026_08_29_08_26_experiment_02/0/test/5AA5.pdb # is usually defined by running cli.py
+output_folder: .out # is usually defined by running cli as well
+verbose : yes # defined by user as well
+
+models:
+  active_site:
+    path: models/test/as_experiment_02.pkl
+    search_type: mc
+  fes:
+    pocket:
+      path: models/test/fes_pocket_experiment_02.pkl
+      search_type: mc
+    type:
+      path: models/test/fes_type_experiment_02.pkl
+      search_type: mc
+  
+  # match inference fingerprint based on model
+  # read model fingerprint radius for specific tasks from model yamls as default ONLY mention in config if not usual
+  # search type as well
+
+
+structure_db:
+  path: benchmarking/complete_benchmark/2026_08_29_08_26_experiment_02/0/db/structureDB/structureDB
+  chain_dir: benchmarking/complete_benchmark/2026_08_29_08_26_experiment_02/0/db/single_chains
+  nn_clustering_radius: 4.0
+  FIDENT_THRESHOLD: 0.1
+  BITS_THRESHOLD: 0

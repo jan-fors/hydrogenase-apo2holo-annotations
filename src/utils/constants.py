@@ -35,7 +35,7 @@ ACTIVE_SITE_WHITELIST = [
     "NFV", "NWN", "NI", "3NI", "NFU", "NFO", "FNE", "FCO"
 ]
 
-AA_ORDER = [
+STANDARD_AMINO_ACIDS = [
     "ALA","ARG","ASN","ASP","CYS","GLN","GLU","GLY",
     "HIS","ILE","LEU","LYS","MET","PHE","PRO",
     "SER","THR","TRP","TYR","VAL"
