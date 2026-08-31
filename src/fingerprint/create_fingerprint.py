@@ -9,35 +9,28 @@ returns:
 """
 
 from pathlib import Path
-from src.utils.constants import (
-    FINGERPRINT_RADIUS,
-    SOAP_N_MAX,
-    SOAP_L_MAX,
-    SOAP_ALLOWED_SPECIES,
-    SOAP_RBF,
-    SOAP_SIGMA,
-    AC_SHELL_WIDTH,
-    AC_ELEMENTS
-)
-from Bio.PDB import PDBParser, NeighborSearch
-from ase import Atoms
+from src.pdb.pdb_handler import get_atom_positions_for_prca, get_structure
 import numpy as np
 from ase.io import read
 from dscribe.descriptors import SOAP
+from Bio.PDB.NeighborSearch import NeighborSearch
+from src.utils.constants import STANDARD_AMINO_ACIDS
+from typing import List
+import tqdm
 
 
-def create_aminoacid_fingerprint(
-    structure_path: Path, point: tuple, fingerprint_radius: float = FINGERPRINT_RADIUS
+def count_aminoacids(
+        structure_path, 
+        point, 
+        f_radius,
+        params
 ) -> np.array:
-    """"""
-    parser = PDBParser()
-    structure = parser.get_structure("prot", structure_path)
-
+    """
+    """
+    structure = get_structure(structure_path)
     atoms = list(structure.get_atoms())
     ns = NeighborSearch(atoms)
-
-    near_atoms = ns.search(point, fingerprint_radius)
-
+    near_atoms = ns.search(point, f_radius)
     residues = {a.get_parent() for a in near_atoms}
 
     F = {
@@ -70,49 +63,84 @@ def create_aminoacid_fingerprint(
             continue
     return np.array(list(F.values()))
 
-
-def _build_amino_acid_only_structure(structure_path):
-    ALLOWED_SPECIES = ["C", "N", "O", "S"]
-    parser = PDBParser(QUIET=True)
-    structure = parser.get_structure("struct", structure_path)
-
-    symbols = []
-    positions = []
-
+def count_aminoacids_per_dist(
+        structure_path, 
+        point, 
+        f_radius,
+        params):
+    """
+    """
+    point = np.asarray(point, dtype=float)
+ 
+    shell_width = params["shell_width"]
+    n_shells = int(np.ceil(f_radius / shell_width))
+    fingerprint = np.zeros(20 * n_shells, dtype=int)
+    elem_index = {e: i for i, e in enumerate(STANDARD_AMINO_ACIDS)}
+ 
+    structure = get_structure(structure_path)
+ 
+    to_remove = []
     for model in structure:
         for chain in model:
             for residue in chain:
-                hetflag, resseq, icode = residue.id
-                if hetflag != " ":  # " " means standard ATOM record (amino acid)
-                    continue  # skip HETATM (cofactors, ions, waters, ligands)
-                for atom in residue:
-                    element = atom.element.strip()
-                    if element not in ALLOWED_SPECIES:
-                        continue
-                    symbols.append(element)
-                    positions.append(tuple(atom.coord))
+                if residue.id[0] != " ":  
+                    to_remove.append((chain, residue.id))
+ 
+    for chain, res_id in to_remove:
+        chain.detach_child(res_id)
+ 
+    residues = []
+    for model in structure:
+        for chain in model:
+            for residue in chain:
+                residues.append((model.id, chain.id, residue.id, residue))
+    residues.sort(key=lambda r: (r[0], r[1], r[2]))
+ 
+    for _, _, _, residue in residues:
+        resname = residue.get_resname().strip().upper()
+        if resname not in elem_index:
+            continue
+ 
+        atoms = residue.get_unpacked_list()
+        if not atoms:
+            continue
+        dist = min(np.linalg.norm(atom.coord - point) for atom in atoms)
+ 
+        if dist >= f_radius:
+            continue
+ 
+        shell = int(dist // shell_width)  # 0 for [0, shell_width), 1 for next, ...
+        idx = shell * len(STANDARD_AMINO_ACIDS) + elem_index[resname]
+        fingerprint[idx] += 1
+ 
+    return fingerprint
 
-    return Atoms(symbols=symbols, positions=positions)
 
-def create_physiochemical_radial_angular(
-    structure_path, point, fingerprint_radius=FINGERPRINT_RADIUS
+def physiochemical_radial_angular(
+    structure_path, point, fingerprint_radius, params
 ):
+    """
+    """
+    allowed_species = params["allowed_species"]
+    n_max = params["n_max"]
+    l_max = params["l_max"]
+    sigma = params["sigma"]
+    rbf = params["rbf"]
 
-    atoms = _build_amino_acid_only_structure(structure_path)
-    keep_mask = [s in SOAP_ALLOWED_SPECIES for s in atoms.get_chemical_symbols()]
+    atoms = get_atom_positions_for_prca(structure_path, allowed_species)
+    keep_mask = [s in allowed_species for s in atoms.get_chemical_symbols()]
     atoms = atoms[keep_mask]
 
     atoms = atoms[keep_mask]
     
-
     soap = SOAP(
-        species=SOAP_ALLOWED_SPECIES,
+        species=allowed_species,
         r_cut=fingerprint_radius,
-        n_max=SOAP_N_MAX,
-        l_max=SOAP_L_MAX,
-        sigma=SOAP_SIGMA,
+        n_max=n_max,
+        l_max=l_max,
+        sigma=sigma,
         periodic=False,
-        rbf=SOAP_RBF,
+        rbf=rbf,
         weighting={"function": "poly", "r0": fingerprint_radius, "c": 1, "m": 3},
     )
 
@@ -120,17 +148,21 @@ def create_physiochemical_radial_angular(
 
     return np.array(fingerprint)
 
-def create_atom_count_fingerprint(
-    structure_path: Path, point: tuple, fingerprint_radius: float = FINGERPRINT_RADIUS
+def count_atoms_per_dist(
+    structure_path: Path, point: tuple, fingerprint_radius: float, params
 ) -> np.array:
+    """
+    """
     point = np.asarray(point, dtype=float)
 
-    n_shells = int(np.ceil(fingerprint_radius / AC_SHELL_WIDTH))
-    fingerprint = np.zeros(len(AC_ELEMENTS) * n_shells, dtype=int)
-    elem_index = {e: i for i, e in enumerate(AC_ELEMENTS)}
+    shell_width = params["shell_width"]
+    allowed_species = params["allowed_species"]
 
-    parser = PDBParser(QUIET=True)
-    structure = parser.get_structure("s", str(structure_path))
+    n_shells = int(np.ceil(fingerprint_radius / shell_width))
+    fingerprint = np.zeros(len(allowed_species) * n_shells, dtype=int)
+    elem_index = {e: i for i, e in enumerate(allowed_species)}
+
+    structure = get_structure(structure_path)
 
     # collect hetero residues first, then detach (don't mutate while iterating)
     to_remove = []
@@ -152,41 +184,68 @@ def create_atom_count_fingerprint(
         if element not in elem_index:
             continue
 
-        shell = int(dist // AC_SHELL_WIDTH)  # 0 for [0,1), 1 for [1,2), ...
-        idx = shell * len(AC_ELEMENTS) + elem_index[element]
+        shell = int(dist // shell_width)  # 0 for [0,1), 1 for [1,2), ...
+        idx = shell * len(allowed_species) + elem_index[element]
         fingerprint[idx] += 1
 
     return np.array(fingerprint)
 
-def create_aa_pcra_combined_fingerprint(
-    structure_path, point, fingerprint_radius=FINGERPRINT_RADIUS
-):
-    """ """
-    aa_fp = create_aminoacid_fingerprint(structure_path, point, fingerprint_radius)
-    pra_fp = create_physiochemical_radial_angular(
-        structure_path, point, fingerprint_radius
-    )
+def count_atoms(structure_path: Path, point: tuple, fingerprint_radius: float, params):
+    """
+    """
+    structure = get_structure(structure_path)
+    atoms = list(structure.get_atoms())
+    ns = NeighborSearch(atoms)
+    near_atoms = ns.search(point, fingerprint_radius)
+    
+    F = {}
 
-    return np.concatenate([aa_fp, pra_fp])
+    for atom_type in params["allowed_species"]:
+        F[atom_type] = 0
 
-def create_aa_ac_combined_fingerprint(structure_path, point, fingerprint_radius=FINGERPRINT_RADIUS):
-    """"""
-    aa_fp = create_aminoacid_fingerprint(structure_path, point, fingerprint_radius)
-    ac_fp = create_atom_count_fingerprint(
-        structure_path, point, fingerprint_radius
-    )
+    for a in near_atoms:
+        try:
+            F[a.get_name()()] += 1
+        except:
+            continue
+    return np.array(list(F.values()))
 
-    return np.concatenate([aa_fp, ac_fp])
 
-def create_complete_fingerprint(structure_path, point, fingerprint_radius=FINGERPRINT_RADIUS):
-    """"""
-    aa_fp = create_aminoacid_fingerprint(structure_path, point, fingerprint_radius)
-    ac_fp = create_atom_count_fingerprint(
-        structure_path, point, fingerprint_radius
-    )
-    pra_fp = create_physiochemical_radial_angular(
-        structure_path, point, fingerprint_radius
-    )
-    print(structure_path, point, len(aa_fp), len(ac_fp), len(pra_fp))
-    return np.concatenate([aa_fp, ac_fp, pra_fp])
+FINGERPRINT_REGISTRY = {
+    "aa_count": count_aminoacids,
+    "aa_dist": count_aminoacids_per_dist,
+    "ac_count": count_atoms,
+    "ac_dist": count_atoms_per_dist,
+    "pcra": physiochemical_radial_angular
+}
 
+def create_fingerprint(structure_path : Path, point : tuple[float,float,float], fingerprint_radius : float, fingerprint_types : list):
+    """
+    """
+    # sort fingerprint_types
+    fingerprint_types_sorted = sorted(fingerprint_types, key=lambda x: x["name"])
+
+    fps = []
+
+    for fp in fingerprint_types_sorted:
+        fp_type = fp["name"]
+        fp_fn = FINGERPRINT_REGISTRY[fp_type]
+        params = fp["params"]
+        
+        fps.append(fp_fn(structure_path, point, fingerprint_radius, params))
+
+    return np.concatenate(fps)
+
+def create_fingerprints(input_path: Path,
+        coordinates: List[tuple[float, float, float]],
+        f_radius: float,
+        fingerprint_types : list
+    ):
+        """"""
+        fingerprints = []
+        for point in tqdm(coordinates):
+            # create fingerprint
+            F = create_fingerprint(input_path, point, f_radius, fingerprint_types)
+            fingerprints.append(F)
+    
+        return fingerprints
