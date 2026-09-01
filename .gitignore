@@ -13,7 +13,14 @@ BENCH.md
 cs_tmp
 logs/
 scripts/
-
+dat/2026-05-26-cof-dataset/foldseek
+dat/2026-05-26-cof-dataset/structures
+dat/2026-05-26-cof-dataset/seq_repr_v2
+dat/2026-05-26-cof-dataset/seq_repr
+dat/2026-05-26-cof-dataset/cofactors_of_interest
+dat/2026-05-20-hyd-dataset/foldseek
+dat/2026-05-20-hyd-dataset/functional_units
+dat/2026-05-20-hyd-dataset/unique_structures_after_cl_F05
 run.sh
 
 db/
