@@ -1,1 +1,2 @@
 dat/2026-05-26-cof-dataset/seq_repr_v3/** filter=lfs diff=lfs merge=lfs -text
+dat/2026-05-26-cof-dataset/seq_repr_v3/*.pdb filter=lfs diff=lfs merge=lfs -text
