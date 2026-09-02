@@ -5,11 +5,23 @@ from apo2holo.io.writers.printl import printl
 from typing import List
 import os
 from Bio.PDB import PDBParser, MMCIFParser, NeighborSearch, Selection
+from Bio import SeqIO
 import subprocess
 import uuid
 import numpy as np
 
+def extract_sequences(structure_path) -> dict:
+    """
+    """
+    res = {}
+    for record in SeqIO.parse(structure_path, "pdb-atom"):
+        res[record.annotations["chain"]] = str(record.seq)
+
+    return res
+
 def get_atom_positions_for_prca(structure_path, allowed_species):
+    """
+    """
     parser = PDBParser(QUIET=True)
     structure = parser.get_structure("struct", structure_path)
 

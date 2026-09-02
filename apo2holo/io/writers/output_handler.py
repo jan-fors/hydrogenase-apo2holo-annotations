@@ -4,11 +4,13 @@ from apo2holo.utils.formula.smiles import SMILES
 import os
 import json
 from apo2holo.io.writers.printl import printl
+from apo2holo.io.writers.boltz_output import write_boltz_output
 from apo2holo.pdb.pdb_handler import identify_cysteines
 import numpy as np
 from apo2holo.utils.geometric.calculate_geometric_centers import calculate_center
 from apo2holo.io.writers.plot_handler import plot_protein
 
+from apo2holo.pdb.pdb_handler import extract_sequences
 def write_outputs(
     out: Path,
     sorted_list: List,
@@ -37,6 +39,7 @@ def write_outputs(
             coords=calculate_center(np.array(as_pockets[as_pocket_key])),
             radius=5.0,
         ),
+        "smiles": SMILES["active_site"]
     }
 
     for k in fes_pockets.keys():
@@ -72,11 +75,11 @@ def write_outputs(
     # results
     result_dict = {}
 
-    result_dict["active_site"] = (output_dict["active_site"],)
+    result_dict["active_site"] = output_dict["active_site"]
     if proximal_key != None:
-        result_dict["proximal"] = (output_dict[proximal_key],)
+        result_dict["proximal"] = output_dict[proximal_key]
     if medial_key != None:
-        result_dict["medial"] = (output_dict[medial_key],)
+        result_dict["medial"] = output_dict[medial_key]
     if distal_key != None:
         result_dict["distal"] = output_dict[distal_key]
 
@@ -89,8 +92,9 @@ def write_outputs(
 
     # write boltz yaml output file
     if boltz:
-        print("YAML CREATION TODO")
-
+        sequences = extract_sequences(structure_path)
+        write_boltz_output(sequences, result_dict, out)
+        
     # create output graphic?
     if plot:
         plot_protein(

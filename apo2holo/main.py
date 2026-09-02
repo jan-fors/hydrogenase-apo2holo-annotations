@@ -13,6 +13,7 @@ from apo2holo.utils.geometric.point_distance import point_distance
 
 from apo2holo.io.writers.output_handler import write_outputs
 
+
 def main(
     input_structure_path: Path,
     output_dir: Path,

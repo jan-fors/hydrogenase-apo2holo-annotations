@@ -14,7 +14,6 @@ def cli(args):
         raise ValueError(f"Input file: {input_file} does not exist")
 
     config = args.config
-    print(config)
     if not os.path.exists(config):
         raise ValueError(f"Config file: {config} does not exist")
 
@@ -80,7 +79,7 @@ def entry():
         default=".",
     )
     parser.add_argument("--plot", action="store_true")
-    parser.add_argument("-boltz", action="store_true")
+    parser.add_argument("--boltz", action="store_true")
 
     args = parser.parse_args()
 
