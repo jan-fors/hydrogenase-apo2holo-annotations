@@ -43,3 +43,6 @@ Repository = "https://github.com/solarflip/hydrogenase-apo2holo-annotations"
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["apo2holo*"]
+
+[tool.setuptools.package-data]
+apo2holo = ["config/*.yaml", "config/*.yml"]
