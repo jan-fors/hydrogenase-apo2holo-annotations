@@ -1,0 +1,247 @@
+"""
+Script that performs a HalvinRandomSearchCV to find the best params and check with a k-fold cv on the training dataset.
+Returns a final accuracy on an unseen testset
+"""
+import os
+os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["OPENBLAS_NUM_THREADS"] = "1"
+os.environ["MKL_NUM_THREADS"] = "1"
+os.environ["NUMEXPR_NUM_THREADS"] = "1"
+os.environ["VECLIB_MAXIMUM_THREADS"] = "1" 
+
+# IMPORTS
+from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.experimental import enable_halving_search_cv
+from sklearn.model_selection import RandomizedSearchCV
+from pathlib import Path
+import pandas as pd
+import sys
+from pprint import pprint
+sys.path.append("..")
+from apo2holo.utils.constants import COFACTOR_BLACKLIST
+import datetime
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
+from sklearn.metrics import confusion_matrix, classification_report
+import argparse
+from sklearn.neural_network import MLPClassifier
+from scipy.stats import loguniform, uniform, randint
+import warnings
+import time
+import pickle
+warnings.filterwarnings("ignore", module="sklearn")
+
+# FUNCTIONS
+def printl(text: str):
+    now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    print(f"[{now}] {text}")
+
+
+def get_pipeline(random_state: int):
+    """ """
+    # define model
+    pipe = Pipeline(
+    [
+        ("scaler", StandardScaler()),  
+        ("clf", MLPClassifier(random_state=random_state)),  
+    ]
+    )
+    return pipe
+
+
+def get_param_distributions():
+    param_distributions_mlp = {
+    "clf__hidden_layer_sizes": [
+        # single layer, small to large
+        (20,), (40,), (64,), (128,), (256,), (512,), (1032,), (2064,),
+        # two-layer funnels
+        (40, 20), (64, 32), (128, 64), (256, 128), (512, 256), (1032, 516),
+        (2064, 512), (1032, 256),
+        # three-layer funnels
+        (128, 64, 32), (256, 128, 64), (512, 256, 128), (2064, 1032, 516),
+        (512, 128, 32),
+        # four-layer funnels
+        (512, 256, 128, 64), (2064, 1032, 516, 128),
+        # symmetric / expand-contract
+        (20, 40, 20), (64, 128, 64), (128, 256, 128),
+        (20, 40, 60, 40, 20), (64, 128, 256, 128, 64),
+        # aggressive reduction for high-dim input (5000 → small)
+        (2064, 512, 128), (2064, 256), (1032, 128, 16),
+    ],
+    "clf__activation":          ["relu", "tanh", "logistic"],  # weight via separate means if needed
+    "clf__solver":              ["adam", "sgd"],
+    "clf__alpha":               loguniform(1e-5, 1e-1),
+    "clf__learning_rate":       ["constant", "adaptive", "invscaling"],
+    "clf__learning_rate_init":  loguniform(1e-4, 1e-2),
+    "clf__max_iter":            randint(700, 1000),
+    "clf__tol":                 loguniform(1e-5, 1e-2),
+    "clf__validation_fraction": uniform(0.1, 0.2),
+    "clf__batch_size":          [32, 64, 128, 256, "auto"],
+    "clf__momentum":            uniform(0.5, 0.45),
+    "clf__beta_1":              uniform(0.85, 0.14),
+    "clf__beta_2":              uniform(0.9, 0.099),
+    }
+    return param_distributions_mlp
+
+
+def prepare_data(data: Path, random_state: int, type : str):
+    """ """
+    df = pd.read_csv(data, sep="\t")
+    printl("Read data...")
+
+    if "id" in df.columns:
+        df.drop("id", axis=1, inplace=True)
+    if "res_name" in df.columns:
+        df.drop("res_name", axis=1, inplace=True)
+    if "smiles" in df.columns:
+        df.drop("smiles", axis=1, inplace=True)
+    if "type" in df.columns:
+        df = df.drop(columns="type")
+    if "aug_dist" in df.columns:
+        df = df.drop(columns="aug_dist")
+    if "structure" in df.columns:
+        df = df.drop(columns="structure")
+    if "fingerprint" in df.columns:
+        df.drop("fingerprint", axis=1, inplace=True)
+    df = df[~df["formula"].isin(COFACTOR_BLACKLIST)].copy()
+    df.reset_index(drop=True, inplace=True)
+
+    
+    
+    if type == "fes":
+        keep = ["3FE4S", "4FE4S", "4FE3S"]
+        df = df[df.formula.isin(keep)]
+        
+        Y = df["formula"]
+
+        if "formula" in df.columns:
+            df = df.drop(columns="formula")
+        if "id" in df.columns:
+            df = df.drop(columns="id")
+        if "smiles" in df.columns:
+            df = df.drop(columns="smiles")
+        if "res_name" in df.columns:
+            df = df.drop(columns="res_name")
+        if "type" in df.columns:
+            df = df.drop(columns="type")
+        if "aug_dist" in df.columns:
+            df = df.drop(columns="aug_dist")
+        if "structure" in df.columns:
+            df = df.drop(columns="structure")
+        
+        X = df
+
+    else:
+        X = df.drop("formula", axis=1)
+        X = X.fillna(0)
+        y = df["formula"]
+        Y = []
+        if type == "as":
+            for i in y:
+                if i != "protein" and i != "active_site":
+                    Y.append("protein")
+                else:
+                    Y.append(i)
+        else:
+            for i in y:
+                if i == "active_site":
+                    Y.append("protein")
+                elif i == "3FE4S" or i == "4FE4S" or i == "4FE3S":
+                    Y.append("fes_pocket")
+                else:
+                    Y.append("protein")  
+        
+        Y = pd.Series(Y)
+    return X, Y
+
+def bench(data, random_state, test_size, scoring, jobs, k, n_iter, type, save_model) -> dict:
+    """ """
+    result = {}
+
+    X, y = prepare_data(data, random_state, type)
+
+    # initial split
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=test_size, random_state=random_state, stratify=y
+    )
+
+    # train
+    search = RandomizedSearchCV(
+        get_pipeline(random_state),
+        get_param_distributions(),
+        n_iter=n_iter,
+        scoring=scoring,
+        cv=k,
+        random_state=random_state,
+        n_jobs=jobs,
+    ).fit(X_train, y_train)
+
+    result["best_params"] = search.best_params_
+
+    # k-fold cv on training data
+    scores = cross_val_score(
+        search.best_estimator_,  # pipeline with best params already baked in
+        X_train,
+        y_train,
+        cv=k,
+        scoring=scoring,
+        n_jobs=jobs,
+    )
+
+    result["cv_mean"] = scores.mean()
+    result["cv_std"] = scores.std()
+
+    # final test on testset
+    final_model = search.best_estimator_
+    y_pred = final_model.predict(X_test)
+
+    result["classification_report"] = classification_report(y_test, y_pred, digits=6)
+
+    if save_model:
+        # save the final model + metadata
+        dataname = data.stem
+        out_dir = data.parent / Path("models")
+        out_dir.mkdir(exist_ok=True)
+        stamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        model_path = out_dir / f"mlp_{type}_data_{dataname}_rs{random_state}_{stamp}.pkl"
+        with open(model_path, "wb") as f:
+            pickle.dump(final_model, f)
+        printl(f"Saved model + metadata to {model_path}")
+
+    return result
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("data",type=Path,  help="Path to the fingerprint tsv file.")
+    parser.add_argument(
+        "--random-state", default=161, type=int, help="Random state for reproducibility"
+    )
+    parser.add_argument(
+        "--test-size",
+        default=0.1,
+        type=float,
+        help="Relative size of initially taken test samples",
+    )
+    parser.add_argument(
+        "--scoring", choices=["accuracy", "f1_weighted", "f1_macro"], default="f1_macro"
+    )
+    parser.add_argument(
+        "--jobs", type=int, default=1, help="Number of parallel Threads. [1]"
+    )
+    parser.add_argument(
+        "--k", type=int, default=5, help="Amount of Cross Validation Rounds. [5]"
+    )
+    parser.add_argument("--n-iter", type=int, default=10, help="Number of iterations. [10]")
+    parser.add_argument("--type", choices=["fes", "as", "fes_pocket"], default="as")
+    args = parser.parse_args()
+
+    bench(
+        args.data,
+        args.random_state,
+        args.test_size,
+        args.scoring,
+        args.jobs,
+        args.k,
+        args.n_iter,
+        args.type
+    )

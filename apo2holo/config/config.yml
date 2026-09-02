@@ -2,14 +2,14 @@ verbose : yes # defined by user as well
 
 models:
   active_site:
-    path: models/test/as_experiment_02.pkl
+    path: null
     search_type: mc
   fes:
     pocket:
-      path: models/test/fes_pocket_experiment_02.pkl
+      path: null
       search_type: mc
     type:
-      path: models/test/fes_type_experiment_02.pkl
+      path: null
       search_type: mc
   
   # match inference fingerprint based on model
@@ -18,8 +18,8 @@ models:
 
 
 structure_db:
-  path: db/structureDB/structureDB
-  chain_dir: db/single_chains
+  path: null
+  chain_dir: null
   nn_clustering_radius: 4.0
   FIDENT_THRESHOLD: 0.1
   BITS_THRESHOLD: 0
