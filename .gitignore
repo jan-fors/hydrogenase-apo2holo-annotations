@@ -35,7 +35,6 @@ run.sh
 dat/
 models/test/
 *.pdf
-config/
 db/
 db2/
 db3/
