@@ -1,3 +1,7 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "apo2holo"
 version = "0.0.1"
@@ -7,28 +11,26 @@ authors = [
 ]
 license = { file = "LICENSE" }
 readme = "README.md"
+requires-python = ">=3.11"
 keywords = ["bioinformatics", "hydrogenase", "annotation"]
 classifiers = [
     "Programming Language :: Python :: 3",
     "Operating System :: OS Independent",
 ]
 dependencies = [
-    "platformdirs>=3.0",
-    "ase==3.29.0",
-    "Bio==1.8.3",
+    "platformdirs==4.11.7",
     "biopython==1.86",
+    "ase==3.29.0",
     "dscribe==2.1.2",
     "numpy==2.5.2",
     "pandas==3.0.5",
-    "platformdirs==4.11.7",
     "plotly==6.5.2",
     "pyhmmer==0.12.3",
     "PyYAML==6.0.3",
     "Requests==2.34.2",
-    "scikit_learn==1.9.0",
+    "scikit-learn==1.9.0",
     "scipy==1.18.1",
-    "tqdm==4.67.3"
-
+    "tqdm==4.67.3",
 ]
 
 [project.scripts]
@@ -36,3 +38,10 @@ apo2holo = "apo2holo.cli:entry"
 
 [project.urls]
 Repository = "https://github.com/solarflip/hydrogenase-apo2holo-annotations"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["apo2holo*"]
+
+[tool.setuptools.package-data]
+apo2holo = ["config/*.yaml"]
