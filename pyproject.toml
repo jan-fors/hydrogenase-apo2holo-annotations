@@ -5,7 +5,7 @@ description = "Skript that allows to annotate the active site and iron-sulfur co
 authors = [
     {name = "Jan-Niklas Forster"}
 ]
-license = "GNU"
+license = { file = "LICENSE" }
 readme = "README.md"
 keywords = ["bioinformatics", "hydrogenase", "annotation"]
 classifiers = [
