@@ -17,7 +17,6 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "Operating System :: OS Independent",
 ]
-requires-python = ">=3.11"
 
 dependencies = [
     "platformdirs==4.11.7",
