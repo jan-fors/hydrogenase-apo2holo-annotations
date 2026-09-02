@@ -27,7 +27,9 @@ dat/2026-05-20-hyd-dataset/functional_units
 dat/2026-05-20-hyd-dataset/unique_structures_after_cl_F05
 dat/2026-05-20-hyd-dataset/initial_structures
 dat/2026-05-20-hyd-dataset/hmms
-
+dat/2026-05-26-cof-dataset/
+docs/hydrogenase-apo2holo-annotations-explaination.pdf
+models/
 run.sh
 
 db/
