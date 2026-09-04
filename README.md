@@ -1,46 +1,51 @@
-# hydrogenase-apo2holo-annotations
+# Hydrogenase-apo2holo-Annotations
+A machine learning based approach that identifies relevant cofactor pockets in NiFe-Hydrogenases and assigns fitting molecules. 
 
-This repository provides a tool to annotate apo **nife** hydrogenase structures with
-information required to obtain the corresponding holoenzyme state.
+## Overview
+Given a NiFe-Hydrogenase apostructure, the script initially performs a foldseek[^1] search to identify structural homologs using the dataset `seq_repr_v3` (see `docs/dataset.md` for more info) as database. The existing cofactor pockets from the structural hits are projected onto the input structure and possible candidate pockets are identified through clustering throse predicted pockets. Using a hierarchical classification process each pocket is assigned a cofactor, if it is predicted as real binding pocket. The predictions are based on inter protein fingerprints (see `docs/fingerprints.md`) and performed using a series of MLPClassifiers. 
 
-## Scope
-- Identify required cofactors (e.g. metal clusters)
-- Assign cofactor types to binding sites
-- Provide residue- and position-level placement information
-
-## Input
-- PDB file containing the hydrogenase apo-enzyme
-
-## Output
-- Structured annotation data (JSON / tabular)
-- No structure generation or modification
-- Input for specific structure prediction models (e.g. yaml for boltz-2)
-
-## Run
-In order to use the program create a conda env with:
+## Installation
+Install directly from GitHub via pip in a new conda environment:
 ```sh
-conda env create -f environment.yml
-```
-### apo2holo
-Before running the script for the first time check `src/utils/constants.py`. 
-In order for the program to run correctly, the paths to the databases have to be set correctly.
-```sh
-python -m src.cli <INPUT STRUCTURE> <RUN_NAME> -o <OUTPUT_DIR>
+# in new environmetn
+conda create -n apo2holo python=3.11 -c bioconda -c conda-forge pdb-tools foldseek
+conda activate apo2holo
+
+# install apo2holo
+pip install git+https://github.com/solarflip/hydrogenase-apo2holo-annotations
 ```
 
-*Example*: `python -m src.cli example/apo_3RGW.pdb -o out testi --structure-db-path db/structureDB/structureDB --fingerprint-db-path db/fingerprintDB`
-### Build Databases
+Or clone and install from source (useful for development):
 ```sh
-python -m src.build <RAW_STRUCTURE_DIR> <OUTPUT_DIR FOR CHAINS> --structure-db-path <PATH> --fingerprint-db-path <PATH>
+git clone https://github.com/solarflip/hydrogenase-apo2holo-annotations
+cd hydrogenase-apo2holo-annotations
+pip install -e .
 ```
-- `OUTPUT_DIR FOR CHAINS`: Each structure is split into its chains and the chains are copied into this folder,
-- `--structure-db-path`: Path for the final structure database. Database is created inside a new folder inside of this specified path 
+## Usage
+```sh
+apo2holo [input] [commands]
+```
 
-*Example*: `python -m src.build dat/2026-03-06-dedup_dimers db/single_chains --structure-db-path db/structureDB --fingerprint-db-path db/fingerprintDB`
+### Example
+```sh
+apo2holo input.pdb -o out/ --plot
+```
 
-# References
-- Rodrigues JPGLM, Teixeira JMC, Trellet M and Bonvin AMJJ.
-pdb-tools: a swiss army knife for molecular structures. 
-F1000Research 2018, 7:1961 (https://doi.org/10.12688/f1000research.17456.1) 
-- https://github.com/steineggerlab/foldseek?tab=readme-ov-file#search   
+### Options
+| Flag | Description | Default |
+|---|---|---|
+| `-o, --output_dir <path>` | Output dir path | `.` |
+| `-c, --config` | Path to a custom config file | `$DATADIR/"config.yaml"`|
+| `--plot` | Generate a result plot | |
+| `--boltz` | Generate an output yaml for boltz[^2]||
 
+
+## Citation
+If you use this tool in your research, please cite:
+t.b.p.
+
+## License
+[MIT](LICENSE)
+
+[^1] van Kempen M, Kim S, Tumescheit C, Mirdita M, Lee J, Gilchrist CLM, Söding J, and Steinegger M. Fast and accurate protein structure search with Foldseek. Nature Biotechnology, doi:10.1038/s41587-023-01773-0 (2023)
+[^2] Passaro, S., Corso, G., Wohlwend, J., Reveiz, M., Thaler, S., Somnath, V. R., Getz, N., Portnoi, T., Roy, J., Stark, H., Kwabi-Addo, D., Beaini, D., Jaakkola, T., & Barzilay, R. (2025). Boltz-2: Towards Accurate and Efficient Binding Affinity Prediction. *bioRxiv*. https://doi.org/10.1101/2025.06.14.659707
