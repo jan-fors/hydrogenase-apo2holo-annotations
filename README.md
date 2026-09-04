@@ -2,7 +2,7 @@
 A machine learning based approach that identifies relevant cofactor pockets in NiFe-Hydrogenases and assigns fitting molecules. 
 
 ## Overview
-Given a NiFe-Hydrogenase apostructure, the script initially performs a foldseek[^1] search to identify structural homologs using the dataset `seq_repr_v3` (see `docs/dataset.md` for more info) as database. The existing cofactor pockets from the structural hits are projected onto the input structure and possible candidate pockets are identified through clustering throse predicted pockets. Using a hierarchical classification process each pocket is assigned a cofactor, if it is predicted as real binding pocket. The predictions are based on inter protein fingerprints (see `docs/fingerprints.md`) and performed using a series of MLPClassifiers. 
+Given a NiFe-Hydrogenase apostructure, the script initially performs a foldseek[^1] search to identify structural homologs using the dataset `seq_repr_v3` (see `docs/dataset.md` for more info) as database. The existing cofactor pockets from the structural hits are projected onto the input structure and possible candidate pockets are identified through clustering throse predicted pockets. Using a hierarchical classification process each pocket is assigned a cofactor, if it is predicted as real binding pocket. The predictions are based on inter protein fingerprints (see `docs/fingerprints.md`) and performed using a series of MLPClassifiers (see `docs/pipeline.md`). 
 
 ## Installation
 Install directly from GitHub via pip in a new conda environment:
