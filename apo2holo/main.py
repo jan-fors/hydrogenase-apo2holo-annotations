@@ -197,7 +197,7 @@ def _fit_into_hyd_structure(fes_cluster_distances: List) -> tuple:
         # distal is around 30 +-
         distal_key = None
         for item in fes_cluster_distances:
-            p = (10 - item[1])**2
+            p = (12 - item[1])**2
             m = (20 - item[1])**2
             d = (30 - item[1])**2
 

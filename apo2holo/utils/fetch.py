@@ -4,9 +4,9 @@ import shutil
 import urllib.request
 from pathlib import Path
 
-RELEASE_BASE = "https://github.com/solarflip/hydrogenase-apo2holo-annotations/releases/tag/v0.0.1-structure-models"
+RELEASE_BASE = "https://github.com/jan-fors/hydrogenase-apo2holo-annotations/releases/tag/v0.0.1-structure-models"
 
-REPO = "solarflip/hydrogenase-apo2holo-annotations"
+REPO = "jan-fors/hydrogenase-apo2holo-annotations"
 
 FILES = {
     "as_experiment_02.pkl": f"{RELEASE_BASE}/as_experiment_02.pkl",

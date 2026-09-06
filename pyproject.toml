@@ -38,7 +38,7 @@ dependencies = [
 apo2holo = "apo2holo.cli:entry"
 
 [project.urls]
-Repository = "https://github.com/solarflip/hydrogenase-apo2holo-annotations"
+Repository = "https://github.com/jan-fors/hydrogenase-apo2holo-annotations"
 
 [tool.setuptools.packages.find]
 where = ["."]

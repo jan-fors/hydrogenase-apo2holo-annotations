@@ -12,12 +12,12 @@ conda create -n apo2holo python=3.11 -c bioconda -c conda-forge pdb-tools foldse
 conda activate apo2holo
 
 # install apo2holo
-pip install git+https://github.com/solarflip/hydrogenase-apo2holo-annotations
+pip install git+https://github.com/jan-fors/hydrogenase-apo2holo-annotations
 ```
 
 Or clone and install from source (useful for development):
 ```sh
-git clone https://github.com/solarflip/hydrogenase-apo2holo-annotations
+git clone https://github.com/jan-fors/hydrogenase-apo2holo-annotations
 cd hydrogenase-apo2holo-annotations
 pip install -e .
 ```

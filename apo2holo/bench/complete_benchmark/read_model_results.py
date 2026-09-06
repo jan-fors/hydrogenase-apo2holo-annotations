@@ -32,20 +32,29 @@ def read_model_results(directory : Path, prediction_out_dir : Path, output_dir :
             else:
                 with open(results_path, "r") as f:
                     data = json.loads(f.read())
-                    
-                if "proximal" in data.keys():
-                    hyd_results["proximal"] = [data["proximal"][0]["predicted_class"]]
-                else:
+
+                try:
+                    if "proximal" in data.keys():
+                        hyd_results["proximal"] = [data["proximal"]["predicted_class"]]
+                    else:
+                        hyd_results["proximal"] = ["n"]
+                except:
                     hyd_results["proximal"] = ["n"]
 
-                if "medial" in data.keys():
-                    hyd_results["medial"] = [data["medial"][0]["predicted_class"]]
-                else:
+                try:
+                    if "medial" in data.keys():
+                        hyd_results["medial"] = [data["medial"]["predicted_class"]]
+                    else:
+                        hyd_results["medial"] = ["n"]
+                except:
                     hyd_results["medial"] = ["n"]
 
-                if "distal" in data.keys():
-                    hyd_results["distal"] = [data["distal"]["predicted_class"]]
-                else:
+                try:
+                    if "distal" in data.keys():
+                        hyd_results["distal"] = [data["distal"]["predicted_class"]]
+                    else:
+                        hyd_results["distal"] = ["n"]
+                except:
                     hyd_results["distal"] = ["n"]
 
             res = pd.concat([res, pd.DataFrame(hyd_results)], ignore_index = True)    
