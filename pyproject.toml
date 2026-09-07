@@ -28,7 +28,7 @@ dependencies = [
     "plotly==6.5.2",
     "pyhmmer==0.12.3",
     "PyYAML==6.0.3",
-    "Requests==2.34.2",
+    "Requests",
     "scikit-learn==1.9.0",
     "scipy==1.17.1",
     "tqdm==4.67.3",
