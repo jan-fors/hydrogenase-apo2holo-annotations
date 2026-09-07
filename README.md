@@ -8,7 +8,7 @@ Given a NiFe-Hydrogenase apostructure, the script initially performs a foldseek[
 Install directly from GitHub via pip in a new conda environment:
 ```sh
 # in new environmetn
-conda create -n apo2holo python=3.11 -c bioconda -c conda-forge pdb-tools foldseek
+conda create -n apo2holo python=3.11 pdb-tools foldseek -c bioconda -c conda-forge
 conda activate apo2holo
 
 # install apo2holo
