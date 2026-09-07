@@ -26,10 +26,10 @@ def fetch_file(name: str, dest_dir: Path, force: bool = False) -> Path:
 
     dest_dir.mkdir(parents=True, exist_ok=True)
 
-    if name in LARGE_ASSETS:
-        _fetch_via_gh_cli(name, dest_dir)
-    else:
-        _fetch_via_urllib(name, dest)
+    # if name in LARGE_ASSETS:
+    #     _fetch_via_gh_cli(name, dest_dir)
+    # else:
+    _fetch_via_urllib(name, dest)
 
     return dest
 
