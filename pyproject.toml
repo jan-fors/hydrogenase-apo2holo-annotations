@@ -30,7 +30,7 @@ dependencies = [
     "PyYAML",
     "Requests",
     "scikit-learn==1.9.0",
-    "scipy==1.17.1",
+    "scipy",
     "tqdm==4.67.3",
 ]
 
