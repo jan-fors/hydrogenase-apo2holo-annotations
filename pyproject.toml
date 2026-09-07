@@ -20,7 +20,7 @@ classifiers = [
 
 dependencies = [
     "platformdirs==4.11.7",
-    "biopython==1.86",
+    "biopython",
     "ase==3.29.0",
     "dscribe==2.1.2",
     "numpy",
