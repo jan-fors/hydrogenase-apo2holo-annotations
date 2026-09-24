@@ -27,7 +27,7 @@ def _keep_only_predictions(per_fes_gt, per_fes_pred):
 
     return res_gt, res_pred
 
-def score_model_results(ground_truth : Path, gt_index_col : str, prediction : Path, prediction_index_col : str):
+def score_model_results(ground_truth : Path, gt_index_col : str, prediction : Path, prediction_index_col : str, save : bool):
     """
     """
     gt = pd.read_csv(ground_truth, sep="\t")
@@ -108,29 +108,55 @@ def score_model_results(ground_truth : Path, gt_index_col : str, prediction : Pa
         print(f"{row[prediction_index_col]} : {score}")
         sum += score
 
-    print("="*20, "SCORE", "="*20)
-    print("PER SAMPLE")
-    print("Overall Acc.:\t", sum/pred.shape[0])
-    print("Predicted Acc.:\t", sum/(pred.shape[0] - unpredicted))
-    print("Coverage:\t", (pred.shape[0]-unpredicted)/pred.shape[0])
-    print()
-
-    print("PER POCKET")
-    print(f"All pockets:\n- acc {accuracy_score(per_fes_gt, per_fes_pred)}\n- ", classification_report(per_fes_gt, per_fes_pred, zero_division=0), "\n")
-
+    n_total = pred.shape[0]
+    n_pred = n_total - unpredicted
     per_fes_gt_only_predictions, per_fes_pred_only_predictions = _keep_only_predictions(per_fes_gt, per_fes_pred)
 
-    print(f"All pockets (only predicted):\n- acc {accuracy_score(per_fes_gt_only_predictions, per_fes_pred_only_predictions)}")
+    pockets = {
+        "All pockets": (per_fes_gt, per_fes_pred),
+        "All pockets (only predicted)": (per_fes_gt_only_predictions, per_fes_pred_only_predictions),
+        "Proximal": (proximal_gt, proximal_pred),
+        "Medial": (medial_gt, medial_pred),
+        "Distal": (distal_gt, distal_pred),
+    }
 
+    results = {
+        "per_sample": {
+            "overall_acc": sum / n_total,
+            "predicted_acc": sum / n_pred if n_pred else 0.0,
+            "coverage": n_pred / n_total,
+        },
+        "per_pocket": {},
+        "wrong": [str(w) for w in wrong],
+    }
 
-    print(f"Proximal:\n- acc {accuracy_score(proximal_gt, proximal_pred)}\n- ", classification_report(proximal_gt, proximal_pred, zero_division=0.0))
-    print(f"Medial:\n- acc {accuracy_score(medial_gt, medial_pred)}\n- ", classification_report(medial_gt, medial_pred, zero_division=0.0))
-    print(f"Distal:\n- acc {accuracy_score(distal_gt, distal_pred)}\n- ", classification_report(distal_gt, distal_pred, zero_division=0.0))
+    print("\n" + "=" * 25 + " SCORE " + "=" * 25)
+    print("\nPER SAMPLE")
+    for name, val in results["per_sample"].items():
+        print(f"  {name:<16}{val:>8.2%}")
 
-    print("="*20, "WRONG", "="*20)
-    print("<position>:<prediction>|<ground_truth>")
+    print("\nPER POCKET")
+    print(f"  {'pocket':<30}{'acc':>8}{'macro F1':>10}")
+    for name, (gt, pr) in pockets.items():
+        acc = accuracy_score(gt, pr)
+        rep = classification_report(gt, pr, zero_division=0, output_dict=True)
+        results["per_pocket"][name] = {"acc": acc, "report": rep}
+        print(f"  {name:<30}{acc:>8.2%}{rep['macro avg']['f1-score']:>10.3f}")
+
+    for name, (gt, pr) in pockets.items():
+        print(f"\n--- {name} ---")
+        print(classification_report(gt, pr, zero_division=0))
+
+    print("=" * 25 + " WRONG " + "=" * 25)
+    print(f"{len(wrong)} wrong  (<position>:<prediction>|<ground_truth>)")
     for w in wrong:
-        print("-",w)
+        print("  -", w)
+
+    if save:
+        save_path = prediction.stem + ".json"
+        with open(save_path, "w") as f:
+            json.dump(results, f, indent=2, default=lambda o: o.item() if hasattr(o, "item") else str(o))
+        print(f"\nSaved results to {save_path}")
 
 
 if __name__ == "__main__":
@@ -139,6 +165,8 @@ if __name__ == "__main__":
     parser.add_argument("--gt_index_col", type=str, default="input_path")
     parser.add_argument("prediction", type=Path)
     parser.add_argument("--prediction_index_col", type=str, default="hyd")
+    parser.add_argument("--save", action="store_true")
+
     args = parser.parse_args()
 
-    score_model_results(args.ground_truth, args.gt_index_col, args.prediction, args.prediction_index_col)
+    score_model_results(args.ground_truth, args.gt_index_col, args.prediction, args.prediction_index_col, args.save)

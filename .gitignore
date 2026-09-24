@@ -56,6 +56,8 @@ dat/2026-03-dedup_dimers/*
 /complete_benchmark/*
 /benchmark_model_results/*
 
+plots/
+
 
 
 tmp/
