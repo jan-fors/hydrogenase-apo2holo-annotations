@@ -11,4 +11,4 @@
 
 # Benchmarking
 - [ ] Create Structured tests to find best models
-- [ ] Fix jobs implementation
+- [X] Fix jobs implementation

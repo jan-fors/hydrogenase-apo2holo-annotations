@@ -8,7 +8,7 @@ from apo2holo.io.writers.boltz_output import write_boltz_output
 from apo2holo.pdb.pdb_handler import identify_cysteines
 import numpy as np
 from apo2holo.utils.geometric.calculate_geometric_centers import calculate_center
-from apo2holo.io.writers.plot_handler import plot_protein
+from apo2holo.io.plot.plot_handler import plot_protein
 
 from apo2holo.pdb.pdb_handler import extract_sequences
 def write_outputs(

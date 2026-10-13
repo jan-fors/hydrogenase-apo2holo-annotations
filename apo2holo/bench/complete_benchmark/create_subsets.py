@@ -45,11 +45,11 @@ def _create_randomized_subsets(test_data : Path, k : int):
 
     return subsets
 
-def _search_test_files_against_train_data(test_dir : Path, train_data : Path, min_seq_id : float, output_file : Path, tmp : Path):
+def _search_test_files_against_train_data(test_dir : Path, train_data : Path, min_seq_id : float, output_file : Path, tmp : Path, threads : int = 1):
     """
     """
     # run against foldseek easy-multimersearch benchmark_dir/0/test dat/2026-05-26-cof-dataset/seq_repr/ output delete --min-seq-id 0.95
-    cmd = ["foldseek", "easy-multimersearch", str(test_dir), str(train_data), str(output_file), str(tmp), "--min-seq-id", str(min_seq_id)]
+    cmd = ["foldseek", "easy-multimersearch", str(test_dir), str(train_data), str(output_file), str(tmp), "--min-seq-id", str(min_seq_id), "--threads", str(threads)]
 
     # run
     subprocess.run(cmd, stdout=subprocess.DEVNULL)
@@ -71,7 +71,7 @@ def _search_test_files_against_train_data(test_dir : Path, train_data : Path, mi
     except Exception as e:
         return []
 
-def create_subsets(test_data_dir : Path, training_data_dir : Path, k : int, min_seq_id : float, out : Path, tmp : Path = Path("tmp")):
+def create_subsets(test_data_dir : Path, training_data_dir : Path, k : int, min_seq_id : float, out : Path, tmp : Path = Path("tmp"), threads : int = 1):
     """
     """
     # read test_data and create k subsets
@@ -97,7 +97,7 @@ def create_subsets(test_data_dir : Path, training_data_dir : Path, k : int, min_
         result_file = foldseek_dir / Path('res')
 
         # search test files against train_data 
-        blacklisted = _search_test_files_against_train_data(test_dir, training_data_dir, min_seq_id, result_file, tmp)
+        blacklisted = _search_test_files_against_train_data(test_dir, training_data_dir, min_seq_id, result_file, tmp, threads)
         print(f"Training-Set contains {len(blacklisted)} files that are above min-seq-id {min_seq_id}")
 
         # create train dir

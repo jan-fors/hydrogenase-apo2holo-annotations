@@ -18,7 +18,7 @@ from apo2holo.bench.complete_benchmark.predict import predict
 from apo2holo.bench.complete_benchmark.read_model_results import read_model_results
 
 
-def benchmark(bench_config: dict, jobs: int, result_dir : Path):
+def benchmark(bench_config: dict, threads: int, result_dir : Path):
     """ """
     run_name = bench_config["run_name"]
 
@@ -54,6 +54,7 @@ def benchmark(bench_config: dict, jobs: int, result_dir : Path):
             k=k,
             min_seq_id=min_seq_id,
             out=bench_directory,
+            threads=threads
         )
 
         # 2. build structure dbs
@@ -82,7 +83,7 @@ def benchmark(bench_config: dict, jobs: int, result_dir : Path):
     fingerprint_db_name = build_fingerprint_base(
         directory=bench_directory,
         f_radius=fingerprint_radius,
-        jobs=jobs,
+        jobs=threads,
         name=run_name,
         extend_background_samples=do_extend_background_samples,
         cofactor_augmentation=do_cofactor_augmentation,
@@ -129,7 +130,7 @@ def benchmark(bench_config: dict, jobs: int, result_dir : Path):
         data=specific_fingerprint_db_path,
         type="as",
         n_iter=active_site_params["n_iter"],
-        jobs=jobs,
+        jobs=threads,
     )
 
     # fes pocket
@@ -140,7 +141,7 @@ def benchmark(bench_config: dict, jobs: int, result_dir : Path):
         data=specific_fingerprint_db_path,
         type="fes_pocket",
         n_iter=fes_pocket_params["n_iter"],
-        jobs=jobs,
+        jobs=threads,
     )
 
     # fes type
@@ -151,7 +152,7 @@ def benchmark(bench_config: dict, jobs: int, result_dir : Path):
         data=specific_fingerprint_db_path,
         type="fes",
         n_iter=fes_type_params["n_iter"],
-        jobs=jobs,
+        jobs=threads,
     )
 
     # 5. train models with params
@@ -222,7 +223,7 @@ def benchmark(bench_config: dict, jobs: int, result_dir : Path):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", type=Path, help="Path to the benchmark config")
-    parser.add_argument("--jobs", type=int, default=1)
+    parser.add_argument("--threads", type=int, default=1)
     parser.add_argument("--result_dir", type=Path, default="benchmarking")
     args = parser.parse_args()
 
@@ -235,4 +236,4 @@ if __name__ == "__main__":
     if not os.path.exists(args.result_dir):
         os.makedirs(args.result_dir, exist_ok=True)
 
-    benchmark(config, args.jobs, args.result_dir)
+    benchmark(config, args.threads, args.result_dir)
