@@ -7,19 +7,21 @@ import pandas as pd
 from pathlib import Path
 from apo2holo.database.utils.deduplicator import deduplicate
 
-def deduplicate_fingerprint_db(directory_path : Path, db_name : str) -> str:
+def deduplicate_fingerprint_db(directory_path : Path, db_name : str, output_name_prefix : str = "dd_") -> str:
     for subset in os.listdir(directory_path):
         db_path = directory_path/Path(subset)/Path('db')/Path('fingerprintDB')/Path(db_name)
-        
+   
         # read db
         df = pd.read_csv(db_path, sep="\t")
 
+
+
         new_df = deduplicate(df)
 
-        out_path = directory_path/Path(subset)/Path('db')/Path('fingerprintDB')/Path("dd_"+db_name)
+        out_path = directory_path/Path(subset)/Path('db')/Path('fingerprintDB')/Path(output_name_prefix+db_name)
         new_df.to_csv(out_path, index = False, sep = "\t")
 
-    return "dd_"+db_name
+    return output_name_prefix+db_name
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

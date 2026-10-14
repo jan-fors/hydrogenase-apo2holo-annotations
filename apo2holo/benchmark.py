@@ -16,6 +16,8 @@ from apo2holo.bench.fingerprint_benchmark.registry import perform_gridsearch
 from apo2holo.bench.complete_benchmark.train_models import train_model
 from apo2holo.bench.complete_benchmark.predict import predict
 from apo2holo.bench.complete_benchmark.read_model_results import read_model_results
+from apo2holo.bench.complete_benchmark.apply_pca import apply_pca
+from apo2holo.bench.complete_benchmark.remove_samples import remove_samples_from_db
 
 
 def benchmark(bench_config: dict, threads: int, result_dir : Path):
@@ -58,48 +60,63 @@ def benchmark(bench_config: dict, threads: int, result_dir : Path):
         )
 
         # 2. build structure dbs
-        build_structure_dbs(bench_directory)
+        build_structure_dbs(bench_directory, threads)
 
     # 3. build fingerprintdbs
-    fingerprint_db_config = bench_config["fingerprint_db"]
-    fingerprint_types = fingerprint_db_config["types"]
-    fingerprint_radius = fingerprint_db_config["radius"]
+    if bench_config["use_existing_fingerprint_table_base"]:
+        print("Using existing db", bench_config["existing_fingerprint_table_base_name"])
+        fingerprint_db_name = bench_config["existing_fingerprint_table_base_name"]
+        fingerprint_db_config = bench_config["fingerprint_db"]
+    else:
+        fingerprint_db_config = bench_config["fingerprint_db"]
+        fingerprint_types = fingerprint_db_config["types"]
+        fingerprint_radius = fingerprint_db_config["radius"]
 
-    do_extend_background_samples = fingerprint_db_config["extend_background_samples"][
-        "do"
-    ]
+        do_extend_background_samples = fingerprint_db_config["extend_background_samples"][
+            "do"
+        ]
 
-    min_dist_art_samples = fingerprint_db_config["extend_background_samples"][
-        "min_dist_art_samples"
-    ]
-    n_art_samples = fingerprint_db_config["extend_background_samples"]["n_art_samples"]
-    strategy = fingerprint_db_config["extend_background_samples"]["strategy"]
+        min_dist_art_samples = fingerprint_db_config["extend_background_samples"][
+            "min_dist_art_samples"
+        ]
+        n_art_samples = fingerprint_db_config["extend_background_samples"]["n_art_samples"]
+        strategy = fingerprint_db_config["extend_background_samples"]["strategy"]
 
-    do_cofactor_augmentation = fingerprint_db_config["cofactor_augmentation"]["do"]
+        do_cofactor_augmentation = fingerprint_db_config["cofactor_augmentation"]["do"]
 
-    aug_radius = fingerprint_db_config["cofactor_augmentation"]["aug_radius"]
-    n_augs = fingerprint_db_config["cofactor_augmentation"]["n_augs"]
+        aug_radius = fingerprint_db_config["cofactor_augmentation"]["aug_radius"]
+        n_augs = fingerprint_db_config["cofactor_augmentation"]["n_augs"]
 
-    fingerprint_db_name = build_fingerprint_base(
-        directory=bench_directory,
-        f_radius=fingerprint_radius,
-        jobs=threads,
-        name=run_name,
-        extend_background_samples=do_extend_background_samples,
-        cofactor_augmentation=do_cofactor_augmentation,
-        fingerprint_types=fingerprint_types,
-        min_dist_art_samples=min_dist_art_samples,
-        n_art_samples=n_art_samples,
-        strategy=strategy,
-        aug_radius=aug_radius,
-        n_augs=n_augs
-    )
-   
+        fingerprint_db_name = build_fingerprint_base(
+            directory=bench_directory,
+            f_radius=fingerprint_radius,
+            jobs=threads,
+            name=run_name,
+            extend_background_samples=do_extend_background_samples,
+            cofactor_augmentation=do_cofactor_augmentation,
+            fingerprint_types=fingerprint_types,
+            min_dist_art_samples=min_dist_art_samples,
+            n_art_samples=n_art_samples,
+            strategy=strategy,
+            aug_radius=aug_radius,
+            n_augs=n_augs
+        )
+
     # deduplicate
     if fingerprint_db_config["deduplicate"]:
-        fingerprint_db_name = deduplicate_fingerprint_db(
-            bench_directory, fingerprint_db_name
-        )
+        print("Deduplicate")
+        if bench_config["use_existing_fingerprint_table_base"]:
+            fingerprint_db_name = deduplicate_fingerprint_db(
+                bench_directory, fingerprint_db_name, run_name
+            )
+        else: 
+            fingerprint_db_name = deduplicate_fingerprint_db(
+                        bench_directory, fingerprint_db_name
+                    )
+
+    # remove samples
+    if fingerprint_db_config["remove_samples_from_db"]["do"]:
+        fingerprint_db_name = remove_samples_from_db(bench_directory, fingerprint_db_config["remove_samples_from_db"], fingerprint_db_name)
 
     # pca
 

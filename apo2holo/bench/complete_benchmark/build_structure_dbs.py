@@ -6,7 +6,7 @@ from pathlib import Path
 import argparse
 from apo2holo.build import build_structure_db
 
-def build_structure_dbs(directory : Path):
+def build_structure_dbs(directory : Path, threads : int = 8):
     """
     """
     # iterate over each subset
@@ -25,7 +25,7 @@ def build_structure_dbs(directory : Path):
         os.makedirs(structure_db, exist_ok=True)
         structure_db = structure_db / Path('structureDB')
 
-        build_structure_db(train_dir, chain_dir, structure_db, jobs=8)
+        build_structure_db(train_dir, chain_dir, structure_db, jobs=threads)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
