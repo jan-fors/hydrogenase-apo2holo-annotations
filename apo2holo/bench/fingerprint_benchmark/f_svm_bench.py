@@ -18,6 +18,8 @@ sys.path.append("..")
 from apo2holo.utils.constants import COFACTOR_BLACKLIST
 import datetime
 import argparse
+
+from sklearn.decomposition import PCA
 from sklearn.svm import SVC
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
@@ -32,15 +34,25 @@ def printl(text: str):
     now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     print(f"[{now}] {text}")
 
-def get_pipeline(random_state: int):
+def get_pipeline(random_state: int, do_pca : bool = False):
     """ """
-    # define model
-    pipe = Pipeline(
-    [
-        ("scaler", StandardScaler()),  
-        ("clf", SVC(random_state=random_state, probability=True)),  
-    ]
-    )
+    if do_pca:
+        # define model
+        pipe = Pipeline(
+        [
+            ("scaler", StandardScaler()),  
+            ("pca", PCA(random_state=random_state)),
+            ("clf", SVC(random_state=random_state, probability=True)),  
+        ]
+        )
+    else:
+        # define model
+        pipe = Pipeline(
+        [
+            ("scaler", StandardScaler()),  
+            ("clf", SVC(random_state=random_state, probability=True)),  
+        ]
+        )
     return pipe
 
 def get_param_distributions():
@@ -126,7 +138,7 @@ def prepare_data(data: Path, random_state: int, type : str):
         Y = pd.Series(Y)
     return X, Y
 
-def bench(data, random_state, test_size, scoring, jobs, k, n_iter, type, save_model) -> dict:
+def bench(data, random_state, test_size, scoring, jobs, k, n_iter, type, save_model, do_pca) -> dict:
     """ """
     result = {}
 
@@ -139,7 +151,7 @@ def bench(data, random_state, test_size, scoring, jobs, k, n_iter, type, save_mo
 
     # train
     search = RandomizedSearchCV(
-        get_pipeline(random_state),
+        get_pipeline(random_state, do_pca),
         get_param_distributions(),
         n_iter=n_iter,
         scoring=scoring,

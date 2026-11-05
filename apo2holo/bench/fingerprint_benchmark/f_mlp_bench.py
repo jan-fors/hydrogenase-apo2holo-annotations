@@ -28,6 +28,7 @@ from sklearn.neural_network import MLPClassifier
 from scipy.stats import loguniform, uniform, randint
 import warnings
 import time
+from sklearn.decomposition import PCA
 import pickle
 warnings.filterwarnings("ignore", module="sklearn")
 
@@ -37,15 +38,25 @@ def printl(text: str):
     print(f"[{now}] {text}")
 
 
-def get_pipeline(random_state: int):
+def get_pipeline(random_state: int, do_pca : bool = False):
     """ """
-    # define model
-    pipe = Pipeline(
-    [
-        ("scaler", StandardScaler()),  
-        ("clf", MLPClassifier(random_state=random_state)),  
-    ]
-    )
+    if do_pca:
+        # define model
+        pipe = Pipeline(
+        [
+            ("scaler", StandardScaler()),  
+            ("pca", PCA(random_state=random_state)),
+            ("clf", MLPClassifier(random_state=random_state)),  
+        ]
+        )
+    else:
+        # define model
+        pipe = Pipeline(
+        [
+            ("scaler", StandardScaler()),  
+            ("clf", MLPClassifier(random_state=random_state)),  
+        ]
+        )
     return pipe
 
 
@@ -154,7 +165,7 @@ def prepare_data(data: Path, random_state: int, type : str):
         Y = pd.Series(Y)
     return X, Y
 
-def bench(data, random_state, test_size, scoring, jobs, k, n_iter, type, save_model) -> dict:
+def bench(data, random_state, test_size, scoring, jobs, k, n_iter, type, save_model, do_pca) -> dict:
     """ """
     result = {}
 
@@ -167,7 +178,7 @@ def bench(data, random_state, test_size, scoring, jobs, k, n_iter, type, save_mo
 
     # train
     search = RandomizedSearchCV(
-        get_pipeline(random_state),
+        get_pipeline(random_state, do_pca),
         get_param_distributions(),
         n_iter=n_iter,
         scoring=scoring,

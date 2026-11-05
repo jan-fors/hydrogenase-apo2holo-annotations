@@ -11,6 +11,9 @@ MODEL_TYPE_REGISTRY = {
     "rf":rf_bench,
     "svm":svm_bench,
     "lr":lr_bench,
+    "knn": None, # https://scikit-learn.org/stable/modules/generated/sklearn.neighbors.KNeighborsClassifier.html
+    "lda": None, # https://scikit-learn.org/stable/modules/generated/sklearn.discriminant_analysis.LinearDiscriminantAnalysis.html 
+    "qda": None # https://scikit-learn.org/stable/modules/generated/sklearn.discriminant_analysis.QuadraticDiscriminantAnalysis.html
 }
 
 def perform_gridsearch(
@@ -24,9 +27,10 @@ def perform_gridsearch(
     n_iter: int = 10,
     type=["fes", "as", "fes_pocket"],
     save_model: bool = False,
+    do_pca : bool = False
 ):
     """
     """
     model_bench = MODEL_TYPE_REGISTRY[model_type]
 
-    return model_bench(data, random_state, test_size, scoring, jobs, k, n_iter, type, save_model)
+    return model_bench(data, random_state, test_size, scoring, jobs, k, n_iter, type, save_model, do_pca)

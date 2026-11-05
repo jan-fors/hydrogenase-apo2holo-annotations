@@ -7,12 +7,15 @@ MODEL_REGISTRY = {
     "mlp": MLPClassifier,
     "rf": RandomForestClassifier,
     "svm": SVC,
-    "lr": LogisticRegression
+    "lr": LogisticRegression,
+    "knn": None,
+    "lda": None,
+    "qda": None
 }
 
 def build_model(type : str):
     """
     """
     if type == "svm":
-        return MODEL_REGISTRY[type](probabilites = True)
+        return MODEL_REGISTRY[type](probability = True)
     return MODEL_REGISTRY[type]()

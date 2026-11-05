@@ -16,7 +16,7 @@ from dscribe.descriptors import SOAP
 from Bio.PDB.NeighborSearch import NeighborSearch
 from apo2holo.utils.constants import STANDARD_AMINO_ACIDS
 from typing import List
-import tqdm
+from tqdm import tqdm
 
 
 def count_aminoacids(

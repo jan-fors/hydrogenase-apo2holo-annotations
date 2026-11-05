@@ -1,4 +1,6 @@
 example/
+*.png
+plots
 *.gitignore
 *.ipynb
 *.csv

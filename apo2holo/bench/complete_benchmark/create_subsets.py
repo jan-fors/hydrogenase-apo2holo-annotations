@@ -71,11 +71,16 @@ def _search_test_files_against_train_data(test_dir : Path, train_data : Path, mi
     except Exception as e:
         return []
 
-def create_subsets(test_data_dir : Path, training_data_dir : Path, k : int, min_seq_id : float, out : Path, tmp : Path = Path("tmp"), threads : int = 1):
+def create_subsets(test_data_dir : Path, training_data_dir : Path, k : int, min_seq_id : float, out : Path, tmp : Path = Path("tmp"), threads : int = 1, specified_subsets : list = None):
     """
     """
-    # read test_data and create k subsets
-    subsets = _create_randomized_subsets(test_data_dir, k)
+    if specified_subsets is None:
+        # read test_data and create k subsets
+        subsets = _create_randomized_subsets(test_data_dir, k)
+    else: 
+        subsets = {}
+        for k in specified_subsets.keys():
+            subsets[k] = [test_data_dir/Path(x) for x in specified_subsets[k]]
 
     for subset in subsets.keys():
         print("="*20,"SUBSET", subset, "="*20)
@@ -88,6 +93,8 @@ def create_subsets(test_data_dir : Path, training_data_dir : Path, k : int, min_
         os.makedirs(test_dir, exist_ok=True)
         counter = 0
         for file in subsets[subset]:
+            if type(file) == str:
+                file = Path(file)
             shutil.copy2(file, test_dir/file.name)
             counter += 1
 
@@ -110,6 +117,8 @@ def create_subsets(test_data_dir : Path, training_data_dir : Path, k : int, min_
                 pass
             else:
                 counter += 1
+                if type(file) == str:
+                    file = Path(file)
                 shutil.copy2(training_data_dir/Path(file), train_dir/Path(file))
 
         print(f"Training-Set contains {counter} files.")

@@ -22,6 +22,8 @@ from sklearn.preprocessing import StandardScaler
 from scipy.stats import loguniform, uniform, randint
 import datetime
 import warnings
+
+from sklearn.decomposition import PCA
 from apo2holo.models.architectures.registry import build_model
 from apo2holo.io.writers.save_model import save_model
 from apo2holo.utils.constants import COFACTOR_BLACKLIST
@@ -34,15 +36,25 @@ def printl(text: str):
     now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     print(f"[{now}] {text}")
 
-def get_pipeline(model):
-    """ """
-    # define model
-    pipe = Pipeline(
+def get_pipeline(model, do_pca : bool = False):
+    """ """#
+    if do_pca:
+        # define model
+        pipe = Pipeline(
         [
-            ("scaler", StandardScaler()),
+            ("scaler", StandardScaler()),  
+            ("pca", PCA()),
             ("clf", model),
         ]
-    )
+        )
+    else:    
+        # define model
+        pipe = Pipeline(
+            [
+                ("scaler", StandardScaler()),
+                ("clf", model),
+            ]
+        )
     return pipe
 
 
@@ -125,7 +137,8 @@ def train_model(
     training_params: dict,
     fingerprint_type : dict,
     f_radius : float,
-    pred_type : str
+    pred_type : str,
+    do_pca : bool
 ):
     """ """
     for subset in os.listdir(directory):
@@ -144,7 +157,7 @@ def train_model(
         model = build_model(model_type)
 
         if pred_type == "fes":
-            fes_model = get_pipeline(model)
+            fes_model = get_pipeline(model, do_pca)
             fes_model.set_params(**training_params)
 
             fes_model.fit(X, Y)
@@ -153,7 +166,7 @@ def train_model(
 
             save_model(fes_model_output_path, fes_model, training_params, fingerprint_type, f_radius)
         elif pred_type == "fes_pocket":
-            fes_pocket_model = get_pipeline(model)
+            fes_pocket_model = get_pipeline(model, do_pca)
             fes_pocket_model.set_params(**training_params)
 
             fes_pocket_model.fit(X, Y)
@@ -163,7 +176,7 @@ def train_model(
             save_model(fes_pocket_model_output_path, fes_pocket_model, training_params, fingerprint_type, f_radius)
         else:
             # define model
-            as_model = get_pipeline(model)
+            as_model = get_pipeline(model, do_pca)
             as_model.set_params(**training_params)
 
             # fit model

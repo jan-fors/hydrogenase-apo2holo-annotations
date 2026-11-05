@@ -16,7 +16,6 @@ from apo2holo.bench.fingerprint_benchmark.registry import perform_gridsearch
 from apo2holo.bench.complete_benchmark.train_models import train_model
 from apo2holo.bench.complete_benchmark.predict import predict
 from apo2holo.bench.complete_benchmark.read_model_results import read_model_results
-from apo2holo.bench.complete_benchmark.apply_pca import apply_pca
 from apo2holo.bench.complete_benchmark.remove_samples import remove_samples_from_db
 
 
@@ -39,7 +38,15 @@ def benchmark(bench_config: dict, threads: int, result_dir : Path):
         bench_directory = bench_config["directory"] / Path(f + "_" + run_name)
         os.makedirs(bench_directory, exist_ok=True)
 
-        k = bench_config["k"]
+        if "k" in bench_config.keys():
+            k = bench_config["k"]
+        else:
+            k = 1
+
+        if "subsets" in bench_config.keys():
+            subsets = bench_config["subsets"]
+        else:
+            subsets = None
         min_seq_id = bench_config["min_seq_id"]
 
         test_data_path = bench_config["test_data"]
@@ -50,13 +57,16 @@ def benchmark(bench_config: dict, threads: int, result_dir : Path):
         if not os.path.exists(train_data_path):
             raise ValueError(f"Train data path {train_data_path} does not exist.")
 
+
+
         create_subsets(
             test_data_dir=test_data_path,
             training_data_dir=train_data_path,
             k=k,
             min_seq_id=min_seq_id,
             out=bench_directory,
-            threads=threads
+            threads=threads,
+            specified_subsets=subsets
         )
 
         # 2. build structure dbs
@@ -67,6 +77,21 @@ def benchmark(bench_config: dict, threads: int, result_dir : Path):
         print("Using existing db", bench_config["existing_fingerprint_table_base_name"])
         fingerprint_db_name = bench_config["existing_fingerprint_table_base_name"]
         fingerprint_db_config = bench_config["fingerprint_db"]
+        fingerprint_types = fingerprint_db_config["types"]
+        fingerprint_radius = fingerprint_db_config["radius"]
+        min_dist_art_samples = fingerprint_db_config["extend_background_samples"][
+            "min_dist_art_samples"
+        ]
+        n_art_samples = fingerprint_db_config["extend_background_samples"]["n_art_samples"]
+        
+        strategy = fingerprint_db_config["extend_background_samples"]["strategy"]
+
+        do_cofactor_augmentation = fingerprint_db_config["cofactor_augmentation"]["do"]
+
+        aug_radius = fingerprint_db_config["cofactor_augmentation"]["aug_radius"]
+
+        n_augs = fingerprint_db_config["cofactor_augmentation"]["n_augs"]
+
     else:
         fingerprint_db_config = bench_config["fingerprint_db"]
         fingerprint_types = fingerprint_db_config["types"]
@@ -148,6 +173,7 @@ def benchmark(bench_config: dict, threads: int, result_dir : Path):
         type="as",
         n_iter=active_site_params["n_iter"],
         jobs=threads,
+        do_pca=active_site_params["pca"]
     )
 
     # fes pocket
@@ -159,6 +185,7 @@ def benchmark(bench_config: dict, threads: int, result_dir : Path):
         type="fes_pocket",
         n_iter=fes_pocket_params["n_iter"],
         jobs=threads,
+        do_pca=fes_pocket_params["pca"]
     )
 
     # fes type
@@ -170,6 +197,7 @@ def benchmark(bench_config: dict, threads: int, result_dir : Path):
         type="fes",
         n_iter=fes_type_params["n_iter"],
         jobs=threads,
+        do_pca=fes_type_params["pca"]
     )
 
     # 5. train models with params
@@ -185,6 +213,7 @@ def benchmark(bench_config: dict, threads: int, result_dir : Path):
         pred_type="as",
         fingerprint_type=fingerprint_types,
         f_radius=fingerprint_radius,
+        do_pca=active_site_params["pca"]
     )
 
     # train fes pocket model
@@ -198,6 +227,7 @@ def benchmark(bench_config: dict, threads: int, result_dir : Path):
         pred_type="fes_pocket",
         fingerprint_type=fingerprint_types,
         f_radius=fingerprint_radius,
+        do_pca=fes_pocket_params["pca"]
     )
 
     # train fes type model
@@ -211,6 +241,7 @@ def benchmark(bench_config: dict, threads: int, result_dir : Path):
         pred_type="fes",
         fingerprint_type=fingerprint_types,
         f_radius=fingerprint_radius,
+        do_pca=fes_type_params["pca"]
     )
 
     # 6. predict

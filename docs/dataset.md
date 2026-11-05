@@ -3,7 +3,7 @@
 ## Hydrogenase Dataset
 ### Experimental Data
 Constructed by appying the following pipeline:
-1. Search rcsb.org for **hydrogenases** with filters set on "experimental", "protein", and "oxidoreductase". (20.05.26 693 hits)
+1. Search rcsb.org for **hydrogenases** with filters set on "experimental", "protein", and "oxidoreductase". (20.05.26 **693** hits)
 2. Batch download
 3. Extracting NiFe-Hydrogenase into `initial_structures`
     1. `unzip '*.zip'`
