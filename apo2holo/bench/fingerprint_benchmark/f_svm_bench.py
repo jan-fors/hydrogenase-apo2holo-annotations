@@ -42,7 +42,7 @@ def get_pipeline(random_state: int, do_pca : bool = False):
         [
             ("scaler", StandardScaler()),  
             ("pca", PCA(random_state=random_state)),
-            ("clf", SVC(random_state=random_state, probability=True)),  
+            ("clf", SVC(max_iter=100_000, cache_size=1000, random_state=random_state, probability=True)),  
         ]
         )
     else:
@@ -50,22 +50,30 @@ def get_pipeline(random_state: int, do_pca : bool = False):
         pipe = Pipeline(
         [
             ("scaler", StandardScaler()),  
-            ("clf", SVC(random_state=random_state, probability=True)),  
+            ("clf", SVC(max_iter=100_000, cache_size=1000, random_state=random_state, probability=True)),  
         ]
         )
     return pipe
 
 def get_param_distributions():
-    param_distributions_svm = {
-    "clf__C":               loguniform(1e-3, 1e4),
-    "clf__kernel":          ["rbf", "rbf", "rbf", "linear", "poly", "sigmoid"],
-    "clf__gamma":           ["scale", "auto"] + list(loguniform(1e-4, 1e1).rvs(20)),
-    "clf__degree":          randint(2, 6),
-    "clf__coef0":           uniform(0, 10),
-    "clf__class_weight":    [None],
-    "clf__tol":             loguniform(1e-5, 1e-2),
-    "clf__shrinking":       [True, False],
-    }
+    param_distributions_svm = [
+        {
+            "clf__kernel": ["rbf"],
+            "clf__C":      loguniform(1e-2, 1e2),
+            "clf__gamma":  loguniform(1e-6, 1e-2),
+        },
+        {
+            "clf__kernel": ["linear"],
+            "clf__C":      loguniform(1e-3, 1e1),
+        },
+        {
+            "clf__kernel": ["poly"],
+            "clf__C":      loguniform(1e-2, 1e1),
+            "clf__gamma":  loguniform(1e-6, 1e-3),
+            "clf__degree": randint(2, 4),   # 2 or 3
+            "clf__coef0":  uniform(0, 1),
+        },
+    ]
     return param_distributions_svm
 
 def prepare_data(data: Path, random_state: int, type : str):

@@ -5,19 +5,22 @@ from apo2holo.bench.fingerprint_benchmark.f_logreg_bench import bench as lr_benc
 from apo2holo.bench.fingerprint_benchmark.f_mlp_bench import bench as mlp_bench
 from apo2holo.bench.fingerprint_benchmark.f_randforest_bench import bench as rf_bench
 from apo2holo.bench.fingerprint_benchmark.f_svm_bench import bench as svm_bench
+from apo2holo.bench.fingerprint_benchmark.f_knn_bench import bench as knn_bench
+from apo2holo.bench.fingerprint_benchmark.f_lda_bench import bench as lda_bench
+from apo2holo.bench.fingerprint_benchmark.f_qda_bench import bench as qda_bench
 
 MODEL_TYPE_REGISTRY = {
     "mlp":mlp_bench,
     "rf":rf_bench,
     "svm":svm_bench,
     "lr":lr_bench,
-    "knn": None, # https://scikit-learn.org/stable/modules/generated/sklearn.neighbors.KNeighborsClassifier.html
-    "lda": None, # https://scikit-learn.org/stable/modules/generated/sklearn.discriminant_analysis.LinearDiscriminantAnalysis.html 
-    "qda": None # https://scikit-learn.org/stable/modules/generated/sklearn.discriminant_analysis.QuadraticDiscriminantAnalysis.html
+    "knn": knn_bench, # https://scikit-learn.org/stable/modules/generated/sklearn.neighbors.KNeighborsClassifier.html
+    "lda": lda_bench, # https://scikit-learn.org/stable/modules/generated/sklearn.discriminant_analysis.LinearDiscriminantAnalysis.html 
+    "qda": qda_bench # https://scikit-learn.org/stable/modules/generated/sklearn.discriminant_analysis.QuadraticDiscriminantAnalysis.html
 }
 
 def perform_gridsearch(
-    model_type : Literal["mlp", "rf", "svm", "lr"],
+    model_type : Literal["mlp", "rf", "svm", "lr", "knn", "lda", "qda"],
     data: Path,
     random_state: int = 161,
     test_size: float = 0.1,

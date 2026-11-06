@@ -115,7 +115,6 @@ def count_aminoacids_per_dist(
  
     return fingerprint
 
-
 def physiochemical_radial_angular(
     structure_path, point, fingerprint_radius, params
 ):
@@ -209,7 +208,6 @@ def count_atoms(structure_path: Path, point: tuple, fingerprint_radius: float, p
         except:
             continue
     return np.array(list(F.values()))
-
 
 FINGERPRINT_REGISTRY = {
     "aa_count": count_aminoacids,
