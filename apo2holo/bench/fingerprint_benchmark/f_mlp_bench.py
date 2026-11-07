@@ -96,8 +96,15 @@ def get_param_distributions():
 
 
 def prepare_data(data: Path, random_state: int, type : str):
-    """ """
-    df = pd.read_csv(data, sep="\t")
+    """
+    Reads and prepares the data
+    """
+    # read db
+    if str(data).endswith(".gz"):
+        df = pd.read_csv(data, sep="\t", compression="gzip")
+    else:
+        df = pd.read_csv(data, sep="\t")
+    
     printl("Read data...")
 
     if "id" in df.columns:
@@ -115,9 +122,7 @@ def prepare_data(data: Path, random_state: int, type : str):
     if "fingerprint" in df.columns:
         df.drop("fingerprint", axis=1, inplace=True)
     df = df[~df["formula"].isin(COFACTOR_BLACKLIST)].copy()
-    df.reset_index(drop=True, inplace=True)
-
-    
+    df.reset_index(drop=True, inplace=True)  
     
     if type == "fes":
         keep = ["3FE4S", "4FE4S", "4FE3S"]

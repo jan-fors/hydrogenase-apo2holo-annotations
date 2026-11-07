@@ -13,10 +13,8 @@ os.environ["NUMEXPR_NUM_THREADS"] = "1"
 os.environ["VECLIB_MAXIMUM_THREADS"] = "1" 
 
 from pathlib import Path
-import argparse
 import pandas as pd
-import numpy as np
-import pickle
+
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 from scipy.stats import loguniform, uniform, randint
@@ -59,8 +57,13 @@ def get_pipeline(model, do_pca : bool = False):
 
 
 def prepare_data(data: Path, type : str):
-    """ """
-    df = pd.read_csv(data, sep="\t")
+    """
+    """
+    # read db
+    if str(data).endswith(".gz"):
+        df = pd.read_csv(data, sep="\t", compression="gzip")
+    else:
+        df = pd.read_csv(data, sep="\t")
     printl("Read data...")
 
     if "id" in df.columns:
@@ -80,8 +83,6 @@ def prepare_data(data: Path, type : str):
     df = df[~df["formula"].isin(COFACTOR_BLACKLIST)].copy()
     df.reset_index(drop=True, inplace=True)
 
-    
-    
     if type == "fes":
         keep = ["3FE4S", "4FE4S", "4FE3S"]
         df = df[df.formula.isin(keep)]
@@ -140,7 +141,9 @@ def train_model(
     pred_type : str,
     do_pca : bool
 ):
-    """ """
+    """
+    Train models
+    """
     for subset in os.listdir(directory):
         print("train model in", subset, "...")
         subset_path = directory / Path(str(subset))
@@ -195,37 +198,37 @@ def train_model(
     else:
         return Path(model_dir_name)/Path("as_" + model_name + ".pkl")
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
+# if __name__ == "__main__":
+#     parser = argparse.ArgumentParser()
 
-    parser.add_argument("dir", type=Path)
-    parser.add_argument("fingerprinttsv_name", type=str)
-    parser.add_argument("model_name", type=str)
-    parser.add_argument("--model_dir_name", type=str, default=None)
-    parser.add_argument(
-        "--parameter_grid", action="store_true"
-    )  # save all models with name_00X and save a extra file that contains name-param pairs
-    parser.add_argument("--iter", type=int, default=1)
-    parser.add_argument("--type", choices=["fes", "as", "fes_pocket"], default="fes")
+#     parser.add_argument("dir", type=Path)
+#     parser.add_argument("fingerprinttsv_name", type=str)
+#     parser.add_argument("model_name", type=str)
+#     parser.add_argument("--model_dir_name", type=str, default=None)
+#     parser.add_argument(
+#         "--parameter_grid", action="store_true"
+#     )  # save all models with name_00X and save a extra file that contains name-param pairs
+#     parser.add_argument("--iter", type=int, default=1)
+#     parser.add_argument("--type", choices=["fes", "as", "fes_pocket"], default="fes")
 
-    args = parser.parse_args()
+#     args = parser.parse_args()
 
-    if args.parameter_grid:
-        if args.model_dir_name == None:
-            raise ValueError("Need to define model_dir_name")
-        train_models(
-            args.dir,
-            args.fingerprinttsv_name,
-            args.model_name,
-            args.model_dir_name,
-            args.iter,
-        )
-    else:
-        train_model(
-            args.dir,
-            args.fingerprinttsv_name,
-            args.model_name,
-            args.model_dir_name,
-            PARAMS,
-            args.type
-        )
+#     if args.parameter_grid:
+#         if args.model_dir_name == None:
+#             raise ValueError("Need to define model_dir_name")
+#         train_models(
+#             args.dir,
+#             args.fingerprinttsv_name,
+#             args.model_name,
+#             args.model_dir_name,
+#             args.iter,
+#         )
+#     else:
+#         train_model(
+#             args.dir,
+#             args.fingerprinttsv_name,
+#             args.model_name,
+#             args.model_dir_name,
+#             PARAMS,
+#             args.type
+#         )

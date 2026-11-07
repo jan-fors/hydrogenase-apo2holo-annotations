@@ -9,16 +9,30 @@ def select(directory_path: Path, db_name : str, keep:list):
     """
     """
     for subset in os.listdir(directory_path):
+        # define db path
         db_path = directory_path/Path(subset)/Path('db')/Path('fingerprintDB')/Path(db_name)
         
         # read db
-        df = pd.read_csv(db_path, sep="\t")
+        if str(db_path).endswith(".gz"):
+            df = pd.read_csv(db_path, sep="\t", compression="gzip")
+        else:
+            df = pd.read_csv(db_path, sep="\t")
 
-        out = feature_selector(df, keep)
+        # select features
+        new_df = feature_selector(df, keep)
+
+        # define output path
+        output_file_name = "sf_"+db_name
+        out_path = directory_path/Path(subset)/Path('db')/Path('fingerprintDB')/Path(output_file_name)
         
-        out_path = directory_path/Path(subset)/Path('db')/Path('fingerprintDB')/Path("sf_"+db_name)
-        out.to_csv(out_path, index=False, sep="\t")
+        # save
+        if str(out_path).endswith(".gz"):
+            new_df.to_csv(out_path, index=False, sep="\t", compression="gzip")
+        else:
+            new_df.to_csv(out_path, index=False, sep="\t")
 
+
+    return output_file_name
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("dir", type=Path)

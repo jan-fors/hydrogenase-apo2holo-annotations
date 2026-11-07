@@ -55,7 +55,11 @@ def get_param_distributions():
 
 def prepare_data(data: Path, random_state: int, type : str):
     """ """
-    df = pd.read_csv(data, sep="\t")
+    # read db
+    if str(data).endswith(".gz"):
+        df = pd.read_csv(data, sep="\t", compression="gzip")
+    else:
+        df = pd.read_csv(data, sep="\t")
     printl("Read data...")
 
     if "id" in df.columns:

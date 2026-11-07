@@ -5,18 +5,18 @@ from pathlib import Path
 import yaml
 import os
 from datetime import datetime
-from apo2holo.bench.complete_benchmark.create_subsets import create_subsets
-from apo2holo.bench.complete_benchmark.build_structure_dbs import build_structure_dbs
-from apo2holo.bench.complete_benchmark.build_fingerprintdb_base import build_fingerprint_base
-from apo2holo.bench.complete_benchmark.deduplicate_fingeprint_db import (
+from apo2holo.bench.complete_benchmark.build.create_subsets import create_subsets
+from apo2holo.bench.complete_benchmark.build.build_structure_dbs import build_structure_dbs
+from apo2holo.bench.complete_benchmark.build.build_fingerprintdb_base import build_fingerprint_base
+from apo2holo.bench.complete_benchmark.transformations.deduplicate_fingeprint_db import (
     deduplicate_fingerprint_db,
 )
-from apo2holo.bench.complete_benchmark.resample_dbs import resample_dbs
+from apo2holo.bench.complete_benchmark.transformations.resample_dbs import resample_dbs
 from apo2holo.bench.fingerprint_benchmark.registry import perform_gridsearch
-from apo2holo.bench.complete_benchmark.train_models import train_model
-from apo2holo.bench.complete_benchmark.predict import predict
-from apo2holo.bench.complete_benchmark.read_model_results import read_model_results
-from apo2holo.bench.complete_benchmark.remove_samples import remove_samples_from_db
+from apo2holo.bench.complete_benchmark.train.train_models import train_model
+from apo2holo.bench.complete_benchmark.validate.predict import predict
+from apo2holo.bench.complete_benchmark.validate.read_model_results import read_model_results
+from apo2holo.bench.complete_benchmark.transformations.remove_samples import remove_samples_from_db
 
 
 def benchmark(bench_config: dict, threads: int, result_dir : Path):
@@ -56,8 +56,6 @@ def benchmark(bench_config: dict, threads: int, result_dir : Path):
         train_data_path = bench_config["training_data"]
         if not os.path.exists(train_data_path):
             raise ValueError(f"Train data path {train_data_path} does not exist.")
-
-
 
         create_subsets(
             test_data_dir=test_data_path,
@@ -112,6 +110,8 @@ def benchmark(bench_config: dict, threads: int, result_dir : Path):
         aug_radius = fingerprint_db_config["cofactor_augmentation"]["aug_radius"]
         n_augs = fingerprint_db_config["cofactor_augmentation"]["n_augs"]
 
+        compress = bench_config["fingerprint_db"]["compress"]
+
         fingerprint_db_name = build_fingerprint_base(
             directory=bench_directory,
             f_radius=fingerprint_radius,
@@ -124,7 +124,8 @@ def benchmark(bench_config: dict, threads: int, result_dir : Path):
             n_art_samples=n_art_samples,
             strategy=strategy,
             aug_radius=aug_radius,
-            n_augs=n_augs
+            n_augs=n_augs,
+            compress=compress
         )
 
     # deduplicate
