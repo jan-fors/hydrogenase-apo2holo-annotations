@@ -43,13 +43,27 @@ def get_atom_positions_for_prca(structure_path, allowed_species):
 
     return Atoms(symbols=symbols, positions=positions)
 
-def get_structure(structure_path : Path):
+def get_structure(structure_path: Path, remove_hetatms: bool = True):
     """
+    Reads a structure file and returns its first model.
+    With remove_hetatms=True (default), all HETATM residues (ligands,
+    cofactors, ions and water) are removed, leaving only the protein.
     """
     parser = PDBParser(QUIET=True)
     structure = parser.get_structure("s", str(structure_path))
+    model = next(structure.get_models())
 
-    return structure
+    if remove_hetatms:
+        for chain in list(model):
+            # residue.id[0] is " " for standard residues, "W" for water,
+            # "H_XXX" for hetero residues
+            het_ids = [res.id for res in chain if res.id[0] != " "]
+            for res_id in het_ids:
+                chain.detach_child(res_id)
+            if len(chain) == 0:  # chain held only ligands/water
+                model.detach_child(chain.id)
+
+    return model
 
 def extract_protein_chains_from_file(input_path: Path, out: Path) -> List[Path]:
     """ """
@@ -177,7 +191,6 @@ def get_protein_boundaries(structure_path: Path) -> tuple:
         maxs[2],
     )
     return x_min, x_max, y_min, y_max, z_min, z_max
-
 
 def extract_hetatm_residues(pdb_file, exclude_water=True):
     """ """
